@@ -1,6 +1,6 @@
 package no.alexgaard.yadi.example;
 
-public interface IServiceD {
+public interface ServiceD {
 
     void hello();
 

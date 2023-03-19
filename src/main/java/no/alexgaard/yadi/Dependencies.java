@@ -6,30 +6,18 @@ import java.util.Optional;
 
 public class Dependencies {
 
-    private final Map<Class, Object> dependencies;
+    private final Map<Class<?>, Object> dependencies;
 
-    public Dependencies(Map<Class, Object> dependencies) {
+    public Dependencies(Map<Class<?>, Object> dependencies) {
         this.dependencies = dependencies;
     }
 
     public <T> T get(Class<T> clazz) {
-        Object dependency = dependencies.get(clazz);
-
-        if (dependency == null) {
-            throw new IllegalStateException(
-                    "Unable to get dependency %s because it has not been registered."
-                            .formatted(clazz.getCanonicalName())
-            );
-        }
-
-//        if (!dependency.getClass().equals(clazz)) {
-//            throw new IllegalStateException(
-//                    "Unable to get dependency %s because it has not been registered."
-//                            .formatted(clazz.getCanonicalName())
-//            );
-//        }
-
-        return (T) dependency;
+        return getOptional(clazz)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Unable to get dependency %s because it has not been registered."
+                                .formatted(clazz.getCanonicalName())
+                ));
     }
 
     public <T> Optional<T> getOptional(Class<T> clazz) {

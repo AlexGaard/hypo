@@ -1,6 +1,6 @@
 package no.alexgaard.yadi.example;
 
-public class ServiceD implements IServiceD {
+public class ServiceDImpl implements ServiceD {
 
     @Override
     public void hello() {

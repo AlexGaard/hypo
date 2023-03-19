@@ -1,48 +1,52 @@
 package no.alexgaard.yadi;
 
-import java.util.HashMap;
-import java.util.Map;
+import no.alexgaard.yadi.exception.CircularDependencyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 public class Registry {
 
-    private final Map<Class, Object> dependencies;
-    private final Map<Class, DependencyProvider> providers;
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<Class, Boolean> initializing;
+    private final Map<Class<?>, Object> dependencies;
+    private final Map<Class<?>, Provider<?>> providers;
+
+    private final Deque<Class<?>> dependencyStack;
 
     public Registry() {
-        this.dependencies = new HashMap<>();
-        this.providers = new HashMap<>();
-        initializing = new HashMap<>();
+        dependencies = new HashMap<>();
+        providers = new HashMap<>();
+        dependencyStack = new ArrayDeque<>();
     }
 
-    protected void resolve() {
-        providers.forEach((depClass, depProvider) -> {
-            Object dep = depProvider.provide(this);
-            dependencies.put(depClass, dep);
-        });
-    }
-
-    protected Map<Class, Object> getDependencies() {
+    protected Map<Class<?>, Object> getDependencies() {
         return dependencies;
     }
 
-    protected Map<Class, DependencyProvider> getProviders() {
+    protected Map<Class<?>, Provider<?>> getProviders() {
         return providers;
     }
 
-    protected <T> void registerProvider(Class<T> clazz, DependencyProvider<T> provider) {
-        // TODO: Warn if already there
+    protected <T> void registerProvider(Class<T> clazz, Provider<T> provider) {
+        if (providers.containsKey(clazz)) {
+            log.warn("A provider for {} has already been registered. Overwriting with new provider.", clazz.getCanonicalName());
+        }
+
         providers.put(clazz, provider);
     }
 
     protected <T> void addDependency(Class<T> clazz, T dependency) {
-        // TODO: Warn if already there
+        if (dependencies.containsKey(clazz)) {
+            log.warn("The dependency {} has already been registered. Overwriting with new dependency.", clazz.getCanonicalName());
+        }
+
         dependencies.put(clazz, dependency);
     }
 
-    private <T> DependencyProvider<T> getProvider(Class<T> clazz) {
-        final var provider = providers.get(clazz);
+    private <T> Provider<T> getProvider(Class<T> clazz) {
+        Provider<T> provider = (Provider<T>) providers.get(clazz);
 
         if (provider == null) {
             throw new IllegalStateException(
@@ -58,16 +62,19 @@ public class Registry {
         var dependency = dependencies.get(clazz);
 
         if (dependency == null) {
-            if (initializing.getOrDefault(clazz, false)) {
-                throw new IllegalStateException(
-                        "Already initializing %s this is a circular dependency".formatted(clazz.getCanonicalName())
-                );
+            if (dependencyStack.contains(clazz)) {
+                List<Class<?>> dependencyCycle = new ArrayList(dependencyStack.stream().toList());
+                dependencyCycle.add(clazz);
+
+                throw new CircularDependencyException(dependencyCycle);
             }
 
-            initializing.put(clazz, true);
+            dependencyStack.add(clazz);
+
             dependency = getProvider(clazz).provide(this);
             dependencies.put(clazz, dependency);
-            initializing.put(clazz, false); // Not necessary
+
+            dependencyStack.pop();
         }
 
         return (T) dependency;

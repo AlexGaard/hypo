@@ -1,6 +1,6 @@
 package no.alexgaard.yadi;
 
-public interface DependencyProvider<T> {
+public interface Provider<T> {
     T provide(Registry registry);
 
 }
