@@ -1,4 +1,4 @@
-package no.alexgaard.di;
+package no.alexgaard.yadi;
 
 import java.util.HashMap;
 import java.util.Map;

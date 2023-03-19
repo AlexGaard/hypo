@@ -1,8 +1,7 @@
-package no.alexgaard.example;
+package no.alexgaard.yadi.example;
 
 public class ServiceC {
-
-    private final ServiceA serviceA;
+    private ServiceA serviceA;
 
     private final IServiceD serviceD;
 
@@ -13,4 +12,14 @@ public class ServiceC {
         this.serviceD = serviceD;
         this.config = config;
     }
+
+    public ServiceA getServiceA() {
+        return serviceA;
+    }
+
+    public void setServiceA(ServiceA serviceA) {
+        this.serviceA = serviceA;
+    }
+
+
 }

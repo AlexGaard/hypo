@@ -1,4 +1,4 @@
-package no.alexgaard.example;
+package no.alexgaard.yadi.example;
 
 public class ServiceD implements IServiceD {
 
