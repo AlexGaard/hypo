@@ -10,19 +10,46 @@ public class Registry {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<Class<?>, Object> dependencies;
+    private final Map<Class<?>, Object> cache;
+
     private final Map<Class<?>, Provider<?>> providers;
 
-    private final Deque<Class<?>> dependencyStack;
+    private final Deque<Class<?>> initializationStack;
 
     public Registry() {
-        dependencies = new HashMap<>();
+        cache = new HashMap<>();
         providers = new HashMap<>();
-        dependencyStack = new ArrayDeque<>();
+        initializationStack = new ArrayDeque<>();
+    }
+
+    public <T> T get(Class<T> clazz) {
+        var dependency = cache.get(clazz);
+
+        if (dependency == null) {
+            if (initializationStack.contains(clazz)) {
+                List<Class<?>> dependencyCycle = new ArrayList(initializationStack.stream().toList());
+                dependencyCycle.add(clazz);
+
+                throw new CircularDependencyException(dependencyCycle);
+            }
+
+            initializationStack.add(clazz);
+
+            dependency = create(clazz);
+            cache.put(clazz, dependency);
+
+            initializationStack.pop();
+        }
+
+        return (T) dependency;
+    }
+
+    public <T> T create(Class<T> clazz) {
+        return getProvider(clazz).provide(this);
     }
 
     protected Map<Class<?>, Object> getDependencies() {
-        return dependencies;
+        return cache;
     }
 
     protected Map<Class<?>, Provider<?>> getProviders() {
@@ -38,11 +65,11 @@ public class Registry {
     }
 
     protected <T> void addDependency(Class<T> clazz, T dependency) {
-        if (dependencies.containsKey(clazz)) {
-            log.warn("The dependency {} has already been registered. Overwriting with new dependency.", clazz.getCanonicalName());
+        if (cache.containsKey(clazz)) {
+            log.warn("The dependency {} has already been added. Overwriting with new dependency.", clazz.getCanonicalName());
         }
 
-        dependencies.put(clazz, dependency);
+        cache.put(clazz, dependency);
     }
 
     private <T> Provider<T> getProvider(Class<T> clazz) {
@@ -56,28 +83,6 @@ public class Registry {
         }
 
         return provider;
-    }
-
-    public <T> T get(Class<T> clazz) {
-        var dependency = dependencies.get(clazz);
-
-        if (dependency == null) {
-            if (dependencyStack.contains(clazz)) {
-                List<Class<?>> dependencyCycle = new ArrayList(dependencyStack.stream().toList());
-                dependencyCycle.add(clazz);
-
-                throw new CircularDependencyException(dependencyCycle);
-            }
-
-            dependencyStack.add(clazz);
-
-            dependency = getProvider(clazz).provide(this);
-            dependencies.put(clazz, dependency);
-
-            dependencyStack.pop();
-        }
-
-        return (T) dependency;
     }
 
 }

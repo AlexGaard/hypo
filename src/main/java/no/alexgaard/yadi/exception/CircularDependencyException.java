@@ -29,6 +29,10 @@ public class CircularDependencyException extends RuntimeException {
     }
 
     private static <T> T getLast(Collection<T> collection) {
+        if (collection.isEmpty()) {
+            throw new IllegalArgumentException("Cannot get last element from an empty collection");
+        }
+
         return collection.stream().toList().get(collection.size() - 1);
     }
 
