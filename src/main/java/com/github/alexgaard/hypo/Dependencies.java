@@ -6,7 +6,7 @@ import com.github.alexgaard.hypo.exception.MissingDependencyProviderException;
 import java.util.*;
 import java.util.function.Supplier;
 
-public class Registry {
+public class Dependencies {
 
     private final Deque<Class<?>> initializationStack;
 
@@ -14,7 +14,7 @@ public class Registry {
 
     private final Map<Class<?>, Provider<?>> providers;
 
-    public Registry(Map<Class<?>, Provider<?>> providers) {
+    public Dependencies(Map<Class<?>, Provider<?>> providers) {
         initializationStack = new ArrayDeque<>();
         cache = new HashMap<>();
 

@@ -12,11 +12,10 @@ public class ResolverTest {
 
     @Test
     public void shouldResolveDependencies() {
-        var resolver = new Resolver()
+        var dependencies = new Resolver()
                 .register(Config.class, Config::new)
-                .register(ServiceE.class, (r) -> new ServiceE(r.get(Config.class)));
-
-        var dependencies = resolver.resolve();
+                .register(ServiceE.class, (r) -> new ServiceE(r.get(Config.class)))
+                .resolve();
 
         assertNotNull(dependencies.get(Config.class));
         assertNotNull(dependencies.get(ServiceE.class));
@@ -27,7 +26,7 @@ public class ResolverTest {
         AtomicReference<Config> configRef = new AtomicReference<>();
         AtomicReference<ServiceE> serviceERef = new AtomicReference<>();
 
-        var resolver = new Resolver()
+        var dependencies = new Resolver()
                 .register(Config.class, (r) -> {
                     var config = new Config();
                     configRef.set(config);
@@ -37,9 +36,8 @@ public class ResolverTest {
                     var serviceE = new ServiceE(r.get(Config.class));
                     serviceERef.set(serviceE);
                     return serviceE;
-                });
-
-        var dependencies = resolver.resolve();
+                })
+                .resolve();
 
         assertEquals(configRef.get(), dependencies.get(Config.class));
         assertEquals(serviceERef.get(), dependencies.get(ServiceE.class));

@@ -35,21 +35,21 @@ public class Resolver {
         return this;
     }
 
-    public Registry resolve() {
-        Registry registry = new Registry(Map.copyOf(providers));
+    public Dependencies resolve() {
+        Dependencies dependencies = new Dependencies(Map.copyOf(providers));
 
-        registry.initialize();
+        dependencies.initialize();
 
         onPostInitListeners.forEach(
-                (clazz, listener) -> listener.onPostInit(registry, registry.get(clazz))
+                (clazz, listener) -> listener.onPostInit(dependencies, dependencies.get(clazz))
         );
 
-        return registry;
+        return dependencies;
     }
 
     public interface OnPostInit<T> {
 
-        void onPostInit(Registry registry, T dependency);
+        void onPostInit(Dependencies dependencies, T dependency);
 
     }
 }
