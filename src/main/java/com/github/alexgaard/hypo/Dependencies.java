@@ -5,6 +5,7 @@ import com.github.alexgaard.hypo.exception.MissingDependencyProviderException;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class Dependencies {
 
@@ -33,7 +34,7 @@ public class Dependencies {
 
     public <T> T create(Class<T> clazz) {
         if (initializationStack.contains(clazz)) {
-            List<Class<?>> dependencyCycle = new ArrayList(initializationStack.stream().toList());
+            List<Class<?>> dependencyCycle = new ArrayList<>(initializationStack);
             dependencyCycle.add(clazz);
 
             throw new CircularDependencyException(dependencyCycle);

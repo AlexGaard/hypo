@@ -12,7 +12,7 @@ public class ResolverTest {
 
     @Test
     public void shouldResolveDependencies() {
-        var dependencies = new Resolver()
+        Dependencies dependencies = new Resolver()
                 .register(Config.class, Config::new)
                 .register(ServiceE.class, (r) -> new ServiceE(r.get(Config.class)))
                 .resolve();
@@ -26,7 +26,7 @@ public class ResolverTest {
         AtomicReference<Config> configRef = new AtomicReference<>();
         AtomicReference<ServiceE> serviceERef = new AtomicReference<>();
 
-        var dependencies = new Resolver()
+        Dependencies dependencies = new Resolver()
                 .register(Config.class, (r) -> {
                     var config = new Config();
                     configRef.set(config);
@@ -45,7 +45,7 @@ public class ResolverTest {
 
     @Test
     public void shouldThrowCircularDependencyException() {
-        var resolver = new Resolver()
+        Resolver resolver = new Resolver()
                 .register(Config.class, (r) -> new Config())
                 .register(ServiceA.class, (r) -> new ServiceA(r.get(ServiceB.class)))
                 .register(ServiceB.class, (r) -> new ServiceB(r.get(ServiceC.class)))

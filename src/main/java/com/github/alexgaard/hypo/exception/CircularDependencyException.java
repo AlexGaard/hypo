@@ -1,5 +1,6 @@
 package com.github.alexgaard.hypo.exception;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ public class CircularDependencyException extends RuntimeException {
             throw new IllegalArgumentException("Cannot get last element from an empty collection");
         }
 
-        return collection.stream().toList().get(collection.size() - 1);
+        return new ArrayList<>(collection).get(collection.size() - 1);
     }
 
     private static String dependencyChainStr(Collection<Class<?>> dependencyCycle) {
