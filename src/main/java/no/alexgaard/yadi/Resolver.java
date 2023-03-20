@@ -6,11 +6,11 @@ import java.util.function.Supplier;
 public class Resolver {
 
     private final Map<Class<?>, Provider<?>> providers;
-    private final Map<Class<?>, OnResolved> onResolvedListeners;
+    private final Map<Class<?>, OnPostInit> onPostInitListeners;
 
     public Resolver() {
         this.providers = new HashMap<>();
-        this.onResolvedListeners = new HashMap<>();
+        this.onPostInitListeners = new HashMap<>();
     }
 
     public <T> Resolver register(Class<T> clazz, Provider<T> provider) {
@@ -24,36 +24,32 @@ public class Resolver {
     public <T> Resolver register(
             Class<T> clazz,
             Provider<T> provider,
-            OnResolved<T> onResolvedListener
+            OnPostInit<T> onPostInit
     ) {
         providers.put(clazz, provider);
 
-        if (onResolvedListener != null) {
-            onResolvedListeners.put(clazz, onResolvedListener);
+        if (onPostInit != null) {
+            onPostInitListeners.put(clazz, onPostInit);
         }
 
         return this;
     }
 
     public Registry resolve() {
-        Registry registry = new Registry();
-        providers.forEach((clazz, provider) -> registry.registerProvider((Class) clazz, (Provider) provider));
+        Registry registry = new Registry(Map.copyOf(providers));
 
-        registry.getProviders().forEach((dependencyClass, provider) -> {
-            Object dependency = provider.provide(registry);
-            registry.addDependency((Class) dependencyClass, dependency);
-        });
+        registry.initialize();
 
-        onResolvedListeners.forEach(
-                (clazz, listener) -> listener.onResolved(registry, registry.getDependencies().get(clazz))
+        onPostInitListeners.forEach(
+                (clazz, listener) -> listener.onPostInit(registry, registry.get(clazz))
         );
 
         return registry;
     }
 
-    public interface OnResolved<T> {
+    public interface OnPostInit<T> {
 
-        void onResolved(Registry registry, T dependency);
+        void onPostInit(Registry registry, T dependency);
 
     }
 }

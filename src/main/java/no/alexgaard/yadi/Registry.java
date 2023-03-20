@@ -1,75 +1,66 @@
 package no.alexgaard.yadi;
 
 import no.alexgaard.yadi.exception.CircularDependencyException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 public class Registry {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final Deque<Class<?>> initializationStack;
 
     private final Map<Class<?>, Object> cache;
 
     private final Map<Class<?>, Provider<?>> providers;
 
-    private final Deque<Class<?>> initializationStack;
-
-    public Registry() {
-        cache = new HashMap<>();
-        providers = new HashMap<>();
+    public Registry(Map<Class<?>, Provider<?>> providers) {
         initializationStack = new ArrayDeque<>();
+        cache = new HashMap<>();
+
+        this.providers = providers;
     }
 
     public <T> T get(Class<T> clazz) {
-        var dependency = cache.get(clazz);
+        T dependency = (T) cache.get(clazz);
 
         if (dependency == null) {
-            if (initializationStack.contains(clazz)) {
-                List<Class<?>> dependencyCycle = new ArrayList(initializationStack.stream().toList());
-                dependencyCycle.add(clazz);
-
-                throw new CircularDependencyException(dependencyCycle);
-            }
-
-            initializationStack.add(clazz);
-
-            dependency = create(clazz);
-            cache.put(clazz, dependency);
-
-            initializationStack.pop();
+            return create(clazz);
         }
 
-        return (T) dependency;
+        return dependency;
     }
 
     public <T> T create(Class<T> clazz) {
-        return getProvider(clazz).provide(this);
-    }
+        if (initializationStack.contains(clazz)) {
+            List<Class<?>> dependencyCycle = new ArrayList(initializationStack.stream().toList());
+            dependencyCycle.add(clazz);
 
-    protected Map<Class<?>, Object> getDependencies() {
-        return cache;
-    }
-
-    protected Map<Class<?>, Provider<?>> getProviders() {
-        return providers;
-    }
-
-    protected <T> void registerProvider(Class<T> clazz, Provider<T> provider) {
-        if (providers.containsKey(clazz)) {
-            log.warn("A provider for {} has already been registered. Overwriting with new provider.", clazz.getCanonicalName());
+            throw new CircularDependencyException(dependencyCycle);
         }
 
-        providers.put(clazz, provider);
-    }
+        initializationStack.add(clazz);
 
-    protected <T> void addDependency(Class<T> clazz, T dependency) {
-        if (cache.containsKey(clazz)) {
-            log.warn("The dependency {} has already been added. Overwriting with new dependency.", clazz.getCanonicalName());
-        }
-
+        T dependency = getProvider(clazz).provide(this);;
         cache.put(clazz, dependency);
+
+        initializationStack.pop();
+
+        return dependency;
+    }
+
+    public <T> Supplier<T> lazyGet(Class<T> clazz) {
+        return () -> get(clazz);
+    }
+
+    public <T> Supplier<T> lazyCreate(Class<T> clazz) {
+        return () -> create(clazz);
+    }
+
+    protected void initialize() {
+        providers.forEach((clazz, provider) -> {
+            Object dependency = provider.provide(this);
+            cache.put(clazz, dependency);
+        });
     }
 
     private <T> Provider<T> getProvider(Class<T> clazz) {
