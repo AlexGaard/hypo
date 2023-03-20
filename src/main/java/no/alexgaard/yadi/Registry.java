@@ -1,6 +1,7 @@
 package no.alexgaard.yadi;
 
 import no.alexgaard.yadi.exception.CircularDependencyException;
+import no.alexgaard.yadi.exception.MissingDependencyProviderException;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -40,7 +41,7 @@ public class Registry {
 
         initializationStack.add(clazz);
 
-        T dependency = getProvider(clazz).provide(this);;
+        T dependency = getProvider(clazz).provide(this);
         cache.put(clazz, dependency);
 
         initializationStack.pop();
@@ -67,10 +68,7 @@ public class Registry {
         Provider<T> provider = (Provider<T>) providers.get(clazz);
 
         if (provider == null) {
-            throw new IllegalStateException(
-                    "Unable to find provider for dependency %s. Has this dependency been registered?"
-                            .formatted(clazz.getCanonicalName())
-            );
+            throw new MissingDependencyProviderException(clazz);
         }
 
         return provider;

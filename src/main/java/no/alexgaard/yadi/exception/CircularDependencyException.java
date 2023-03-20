@@ -7,18 +7,8 @@ import static java.lang.String.format;
 
 public class CircularDependencyException extends RuntimeException {
 
-    private final Collection<Class<?>> dependencyCycle;
-
     public CircularDependencyException(Collection<Class<?>> dependencyCycle) {
         super(cyclicDependencyMessage(dependencyCycle));
-        this.dependencyCycle = dependencyCycle;
-    }
-
-    @Override
-    public String toString() {
-        return "CircularDependencyException{" +
-                "cycle=" + dependencyChainStr(dependencyCycle) +
-                '}';
     }
 
     private static String cyclicDependencyMessage(Collection<Class<?>> dependencyCycle) {
