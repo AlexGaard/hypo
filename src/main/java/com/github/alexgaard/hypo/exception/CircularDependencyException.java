@@ -1,4 +1,4 @@
-package no.alexgaard.yadi.exception;
+package com.github.alexgaard.hypo.exception;
 
 import java.util.Collection;
 import java.util.stream.Collectors;

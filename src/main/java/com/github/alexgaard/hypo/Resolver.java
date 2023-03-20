@@ -1,4 +1,4 @@
-package no.alexgaard.yadi;
+package com.github.alexgaard.hypo;
 
 import java.util.*;
 import java.util.function.Supplier;

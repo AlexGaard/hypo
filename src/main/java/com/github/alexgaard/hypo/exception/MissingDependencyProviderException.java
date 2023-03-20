@@ -1,4 +1,4 @@
-package no.alexgaard.yadi.exception;
+package com.github.alexgaard.hypo.exception;
 
 import static java.lang.String.format;
 

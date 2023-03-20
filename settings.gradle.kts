@@ -1,2 +1,1 @@
-rootProject.name = "yadi"
-
+rootProject.name = "hypo"

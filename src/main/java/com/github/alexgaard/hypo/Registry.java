@@ -1,7 +1,7 @@
-package no.alexgaard.yadi;
+package com.github.alexgaard.hypo;
 
-import no.alexgaard.yadi.exception.CircularDependencyException;
-import no.alexgaard.yadi.exception.MissingDependencyProviderException;
+import com.github.alexgaard.hypo.exception.CircularDependencyException;
+import com.github.alexgaard.hypo.exception.MissingDependencyProviderException;
 
 import java.util.*;
 import java.util.function.Supplier;

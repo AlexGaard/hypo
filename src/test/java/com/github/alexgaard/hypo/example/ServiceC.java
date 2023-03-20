@@ -1,4 +1,4 @@
-package no.alexgaard.yadi.example;
+package com.github.alexgaard.hypo.example;
 
 public class ServiceC {
     private ServiceA serviceA;

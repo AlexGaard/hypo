@@ -1,7 +1,7 @@
-package no.alexgaard.yadi;
+package com.github.alexgaard.hypo;
 
-import no.alexgaard.yadi.example.*;
-import no.alexgaard.yadi.exception.CircularDependencyException;
+import com.github.alexgaard.hypo.example.*;
+import com.github.alexgaard.hypo.exception.CircularDependencyException;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicReference;

@@ -1,2 +1,2 @@
-# Yet Another Dependency Injection framework
+# Hypo - Dependency injection without overhead and reflection
 

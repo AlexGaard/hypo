@@ -1,7 +1,8 @@
-package no.alexgaard.yadi.exception;
+package com.github.alexgaard.hypo.exception;
 
-import no.alexgaard.yadi.Resolver;
-import no.alexgaard.yadi.example.*;
+import com.github.alexgaard.hypo.example.ServiceA;
+import com.github.alexgaard.hypo.example.ServiceB;
+import com.github.alexgaard.hypo.example.ServiceC;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -19,8 +20,8 @@ public class CircularDependencyExceptionTest {
         CircularDependencyException exception = new CircularDependencyException(circularDependencies);
 
         var expectedMsg = """
-                Circular dependency detected while initializing no.alexgaard.yadi.example.ServiceB.
-                Dependency chain: no.alexgaard.yadi.example.ServiceB -> no.alexgaard.yadi.example.ServiceC -> no.alexgaard.yadi.example.ServiceA -> no.alexgaard.yadi.example.ServiceB
+                Circular dependency detected while initializing com.github.alexgaard.hypo.example.ServiceB.
+                Dependency chain: com.github.alexgaard.hypo.example.ServiceB -> com.github.alexgaard.hypo.example.ServiceC -> com.github.alexgaard.hypo.example.ServiceA -> com.github.alexgaard.hypo.example.ServiceB
                 """.trim();
 
         assertEquals(exception.getMessage(), expectedMsg);
