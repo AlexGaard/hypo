@@ -5,8 +5,9 @@ import com.github.alexgaard.hypo.example.ServiceB;
 import com.github.alexgaard.hypo.example.ServiceC;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -14,9 +15,9 @@ public class CircularDependencyExceptionTest {
 
     @Test
     public void shouldThrowCircularDependencyException() {
-        List<Class<?>> circularDependencies = Arrays.asList(
+        List<String> circularDependencies = Stream.of(
                 ServiceB.class, ServiceC.class, ServiceA.class, ServiceB.class
-        );
+        ).map(Class::getCanonicalName).collect(Collectors.toList());
 
         CircularDependencyException exception = new CircularDependencyException(circularDependencies);
 

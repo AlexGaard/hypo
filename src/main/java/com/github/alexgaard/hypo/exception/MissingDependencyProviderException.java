@@ -4,13 +4,13 @@ import static java.lang.String.format;
 
 public class MissingDependencyProviderException extends RuntimeException {
 
-    public MissingDependencyProviderException(Class<?> missingClass) {
-        super(message(missingClass));
+    public MissingDependencyProviderException(String dependencyId) {
+        super(message(dependencyId));
     }
 
-    private static String message(Class<?> missingClass) {
+    private static String message(String dependencyId) {
         String str = "Unable to find a dependency provider for %s. Has a provider for this dependency been registered?";
-        return format(str, missingClass.getCanonicalName());
+        return format(str, dependencyId);
     }
 
 }

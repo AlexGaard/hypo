@@ -2,20 +2,19 @@ package com.github.alexgaard.hypo.exception;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
 public class CircularDependencyException extends RuntimeException {
 
-    public CircularDependencyException(Collection<Class<?>> dependencyCycle) {
+    public CircularDependencyException(Collection<String> dependencyCycle) {
         super(cyclicDependencyMessage(dependencyCycle));
     }
 
-    private static String cyclicDependencyMessage(Collection<Class<?>> dependencyCycle) {
+    private static String cyclicDependencyMessage(Collection<String> dependencyCycle) {
         return format(
                 "Circular dependency detected while initializing %s.\nDependency chain: %s",
-                getLast(dependencyCycle).getCanonicalName(), dependencyChainStr(dependencyCycle)
+                getLast(dependencyCycle), dependencyChainStr(dependencyCycle)
         );
     }
 
@@ -27,11 +26,8 @@ public class CircularDependencyException extends RuntimeException {
         return new ArrayList<>(collection).get(collection.size() - 1);
     }
 
-    private static String dependencyChainStr(Collection<Class<?>> dependencyCycle) {
-        return dependencyCycle
-                .stream()
-                .map(Class::getCanonicalName)
-                .collect(Collectors.joining(" -> "));
+    private static String dependencyChainStr(Collection<String> dependencyCycle) {
+        return String.join(" -> ", dependencyCycle);
     }
 
 }

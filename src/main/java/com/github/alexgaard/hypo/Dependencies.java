@@ -8,17 +8,19 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.function.Supplier;
 
+import static com.github.alexgaard.hypo.util.DependencyId.id;
+
 public class Dependencies {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Deque<Class<?>> initializationStack;
+    private final Deque<String> initializationStack;
 
-    private final Map<Class<?>, Object> cache;
+    private final Map<String, Object> cache;
 
-    private final Map<Class<?>, Provider<?>> providers;
+    private final Map<String, Provider<?>> providers;
 
-    public Dependencies(Map<Class<?>, Provider<?>> providers) {
+    public Dependencies(Map<String, Provider<?>> providers) {
         initializationStack = new ArrayDeque<>();
         cache = new HashMap<>();
 
@@ -26,7 +28,11 @@ public class Dependencies {
     }
 
     public <T> T get(Class<T> clazz) {
-        T dependency = (T) cache.get(clazz);
+        return get(clazz, null);
+    }
+
+    public <T> T get(Class<T> clazz, String name) {
+        T dependency = (T) cache.get(id(clazz, name));
 
         if (dependency == null) {
             return create(clazz);
@@ -36,19 +42,25 @@ public class Dependencies {
     }
 
     public <T> T create(Class<T> clazz) {
-        if (initializationStack.contains(clazz)) {
-            List<Class<?>> dependencyCycle = new ArrayList<>(initializationStack);
-            dependencyCycle.add(clazz);
+       return create(clazz, null);
+    }
+
+    public <T> T create(Class<T> clazz, String name) {
+        String dependencyId = id(clazz, name);
+
+        if (initializationStack.contains(dependencyId)) {
+            List<String> dependencyCycle = new ArrayList<>(initializationStack);
+            dependencyCycle.add(dependencyId);
 
             throw new CircularDependencyException(dependencyCycle);
         }
 
-        log.debug("Creating dependency {}. Dependency stack {}.", clazz, initializationStack);
+        log.debug("Creating dependency {}. Dependency stack {}.", dependencyId, initializationStack);
 
-        initializationStack.add(clazz);
+        initializationStack.add(dependencyId);
 
-        T dependency = getProvider(clazz).provide(this);
-        cache.put(clazz, dependency);
+        T dependency = (T) getProvider(dependencyId).provide(this);
+        cache.put(dependencyId, dependency);
 
         initializationStack.pop();
 
@@ -74,11 +86,11 @@ public class Dependencies {
         log.debug("Created dependencies after initialization {}", cache);
     }
 
-    private <T> Provider<T> getProvider(Class<T> clazz) {
-        Provider<T> provider = (Provider<T>) providers.get(clazz);
+    private Provider<?> getProvider(String id) {
+        Provider<?> provider = providers.get(id);
 
         if (provider == null) {
-            throw new MissingDependencyProviderException(clazz);
+            throw new MissingDependencyProviderException(id);
         }
 
         return provider;

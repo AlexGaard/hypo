@@ -3,16 +3,20 @@ package com.github.alexgaard.hypo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
+
+import static com.github.alexgaard.hypo.util.DependencyId.id;
 
 public class Resolver {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<Class<?>, Provider<?>> providers;
+    private final Map<String, Provider<?>> providers;
 
-    private final Map<Class<?>, OnPostInit> onPostInitListeners;
+    private final Map<DependencyId, OnPostInit> onPostInitListeners;
 
     public Resolver() {
         this.providers = new HashMap<>();
@@ -20,22 +24,41 @@ public class Resolver {
     }
 
     public <T> Resolver register(Class<T> clazz, Provider<T> provider) {
-       return register(clazz, provider, null);
+        return register(clazz, null, provider, null);
     }
 
     public <T> Resolver register(Class<T> clazz, Supplier<T> provider) {
         return register(clazz, (ignored) -> provider.get());
     }
 
-    public <T> Resolver register(
-            Class<T> clazz,
-            Provider<T> provider,
-            OnPostInit<T> onPostInit
-    ) {
-        providers.put(clazz, provider);
+    public <T> Resolver register(Class<T> clazz, Provider<T> provider, OnPostInit<T> onPostInit) {
+        return register(clazz, null, provider, onPostInit);
+    }
+
+    public <T> Resolver register(Class<T> clazz, String name, Provider<T> provider) {
+        return register(clazz, name, provider, null);
+    }
+
+    public <T> Resolver register(Class<T> clazz, String name, Supplier<T> provider) {
+        return register(clazz, name, (ignored) -> provider.get(), null);
+    }
+
+    public <T> Resolver register(Class<T> clazz, String name, Supplier<T> provider, OnPostInit<T> onPostInit) {
+        return register(clazz, name, (ignored) -> provider.get(), onPostInit);
+    }
+
+    public <T> Resolver register(Class<T> clazz, String name, Provider<T> provider, OnPostInit<T> onPostInit) {
+        String id = id(clazz, name);
+
+        if (providers.containsKey(id)) {
+            log.warn("Overwriting the previously registered provider for " + id);
+        }
+
+        providers.put(id, provider);
 
         if (onPostInit != null) {
-            onPostInitListeners.put(clazz, onPostInit);
+            DependencyId dependencyId = new DependencyId(clazz, name);
+            onPostInitListeners.put(dependencyId, onPostInit);
         }
 
         return this;
@@ -49,7 +72,7 @@ public class Resolver {
         log.debug("Finished initialization of dependencies");
 
         onPostInitListeners.forEach(
-                (clazz, listener) -> listener.onPostInit(dependencies, dependencies.get(clazz))
+                (id, listener) -> listener.onPostInit(dependencies, dependencies.get(id.clazz, id.name))
         );
 
         return dependencies;
@@ -60,4 +83,31 @@ public class Resolver {
         void onPostInit(Dependencies dependencies, T dependency);
 
     }
+
+    public static class DependencyId {
+
+        public final Class<?> clazz;
+
+        public final String name;
+
+        public DependencyId(Class<?> clazz, String name) {
+            this.clazz = clazz;
+            this.name = name;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            DependencyId that = (DependencyId) o;
+            return clazz.equals(that.clazz) && Objects.equals(name, that.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(clazz, name);
+        }
+
+    }
+
 }
