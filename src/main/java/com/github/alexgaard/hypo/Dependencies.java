@@ -2,12 +2,15 @@ package com.github.alexgaard.hypo;
 
 import com.github.alexgaard.hypo.exception.CircularDependencyException;
 import com.github.alexgaard.hypo.exception.MissingDependencyProviderException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 public class Dependencies {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final Deque<Class<?>> initializationStack;
 
@@ -40,6 +43,8 @@ public class Dependencies {
             throw new CircularDependencyException(dependencyCycle);
         }
 
+        log.debug("Creating dependency {}. Dependency stack {}.", clazz, initializationStack);
+
         initializationStack.add(clazz);
 
         T dependency = getProvider(clazz).provide(this);
@@ -59,10 +64,14 @@ public class Dependencies {
     }
 
     protected void initialize() {
+        log.debug("Initializing dependencies with registered providers {}", providers);
+
         providers.forEach((clazz, provider) -> {
             Object dependency = provider.provide(this);
             cache.put(clazz, dependency);
         });
+
+        log.debug("Created dependencies after initialization {}", cache);
     }
 
     private <T> Provider<T> getProvider(Class<T> clazz) {

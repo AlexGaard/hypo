@@ -1,11 +1,17 @@
 package com.github.alexgaard.hypo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.*;
 import java.util.function.Supplier;
 
 public class Resolver {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+
     private final Map<Class<?>, Provider<?>> providers;
+
     private final Map<Class<?>, OnPostInit> onPostInitListeners;
 
     public Resolver() {
@@ -39,6 +45,8 @@ public class Resolver {
         Dependencies dependencies = new Dependencies(Map.copyOf(providers));
 
         dependencies.initialize();
+
+        log.debug("Finished initialization of dependencies");
 
         onPostInitListeners.forEach(
                 (clazz, listener) -> listener.onPostInit(dependencies, dependencies.get(clazz))

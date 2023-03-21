@@ -9,7 +9,7 @@ public class MissingDependencyProviderException extends RuntimeException {
     }
 
     private static String message(Class<?> missingClass) {
-        String str = "Unable to find provider for dependency %s. Has this dependency been registered?";
+        String str = "Unable to find a dependency provider for %s. Has a provider for this dependency been registered?";
         return format(str, missingClass.getCanonicalName());
     }
 
