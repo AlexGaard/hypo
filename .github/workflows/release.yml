@@ -1,4 +1,4 @@
-name: Main
+name: Release
 on:
   push:
     branches:
@@ -6,9 +6,18 @@ on:
     paths:
       - gradle.properties
 jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+
+  sonarcloud:
+    uses: ./.github/workflows/sonarcloud.yml
+
   release:
     name: Release
     runs-on: ubuntu-latest
+    needs:
+      - test
+      - sonarcloud
     permissions:
       contents: write
     steps:
@@ -21,8 +30,6 @@ jobs:
           java-version: '11'
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
-      - name: Run tests
-        run: ./gradlew check
       - name: Get version
         run: echo "VERSION=$(./gradlew getVersion --console=plain -q)" >> $GITHUB_ENV
       - name: Create release

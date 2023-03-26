@@ -2,9 +2,10 @@ val sl4jVersion = "2.0.7"
 val junitVersion = "5.9.2"
 
 plugins {
+	jacoco
 	`java-library`
 	`maven-publish`
-	jacoco
+	id("org.sonarqube") version "4.0.0.2929"
 }
 
 group = "com.github.alexgaard"
@@ -12,6 +13,14 @@ version = project.property("release_version") ?: throw IllegalStateException("re
 
 repositories {
 	mavenCentral()
+}
+
+sonarqube {
+	properties {
+		property("sonar.projectKey", "hypo")
+		property("sonar.organization", "alexgaard")
+		property("sonar.host.url", "https://sonarcloud.io")
+	}
 }
 
 dependencies {

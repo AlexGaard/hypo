@@ -1,8 +1,7 @@
 name: Run tests
 on:
+  workflow_call:
   push:
-    branches-ignore:
-      - main
 jobs:
   test:
     name: Run tests
