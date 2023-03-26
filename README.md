@@ -40,12 +40,7 @@ The dependencies returned from `resolve()` can be used as a service locator to g
 
 ### Circular dependencies
 
-If there is a circular dependency present when `resolve()` is called, an exception will be thrown with information about the circular dependency graph.
-
-```
-Circular dependency detected while initializing com.github.alexgaard.hypo.example.ServiceA.
-Dependency chain: com.github.alexgaard.hypo.example.ServiceA -> com.github.alexgaard.hypo.example.ServiceB -> com.github.alexgaard.hypo.example.ServiceC -> com.github.alexgaard.hypo.example.ServiceA
-```
+If there is a circular dependency present when `resolve()` is called, an exception will be thrown displaying the circular dependency graph.
 
 ```java
  Resolver resolver = new Resolver()
@@ -54,13 +49,18 @@ Dependency chain: com.github.alexgaard.hypo.example.ServiceA -> com.github.alexg
                 .register(ServiceB.class, (d) -> new ServiceB(d.get(ServiceC.class)))
                 .register(ServiceC.class, (d) -> new ServiceC(d.get(ServiceA.class), d.get(ServiceD.class), d.get(Config.class)));
 
-resolver.resolve(); // throws CircularDependencyException
+/*
+throws CircularDependencyException with the following message:
+    Circular dependency detected while initializing ServiceA.
+    Dependency chain: ServiceA -> ServiceB -> ServiceC -> ServiceA
+*/
+resolver.resolve();
 ```
 
 If you have a circular dependency, then often the best option is to restructure your dependencies, but sometimes a circular dependency is necessary.
 There are several ways of resolving these problems, for example:
 
-Initialize with null and use `onPostInit` callback to set the dependency after initialization.
+Initialize with null and use the `onPostInit` callback to set the dependency after initialization.
 
 ```java
 Resolver resolver = new Resolver()
