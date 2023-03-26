@@ -2,11 +2,11 @@ val sl4jVersion = "2.0.7"
 val junitVersion = "5.9.2"
 
 plugins {
-	id("java")
+	`java-library`
 }
 
 group = "com.github.alexgaard"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
 	mavenCentral()
@@ -28,4 +28,7 @@ java {
 	toolchain {
 		languageVersion.set(JavaLanguageVersion.of(11))
 	}
+
+	withSourcesJar()
+	withJavadocJar()
 }
