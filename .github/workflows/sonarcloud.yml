@@ -1,6 +1,9 @@
 name: SonarCloud
 on:
   workflow_call:
+    secrets:
+      SONAR_TOKEN:
+        required: true
   push:
 jobs:
   build:

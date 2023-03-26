@@ -11,6 +11,8 @@ jobs:
 
   sonarcloud:
     uses: ./.github/workflows/sonarcloud.yml
+    secrets:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   release:
     name: Release
