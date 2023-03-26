@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class DependenciesTest {
 
     @Test
-    public void shouldResolveDependencies() {
+    void shouldResolveDependencies() {
         Dependencies dependencies = new Resolver()
                 .register(Config.class, Config::new)
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)))
@@ -23,7 +23,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void get_shouldReturnTheSameDependency() {
+    void get_shouldReturnTheSameDependency() {
         Dependencies dependencies = new Resolver()
                 .register(Config.class, Config::new)
                 .resolve();
@@ -32,7 +32,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void create_shouldReturnTheDifferentDependencies() {
+    void create_shouldReturnTheDifferentDependencies() {
         Dependencies dependencies = new Resolver()
                 .register(Config.class, Config::new)
                 .resolve();
@@ -41,7 +41,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void shouldResolveSameClassWithDifferentNames() {
+    void shouldResolveSameClassWithDifferentNames() {
         Dependencies dependencies = new Resolver()
                 .register(Config.class, Config::new)
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)))
@@ -63,7 +63,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void shouldGetSameDependencyIfNameIsNull() {
+    void shouldGetSameDependencyIfNameIsNull() {
         Dependencies dependencies = new Resolver()
                 .register(Config.class, Config::new)
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)))
@@ -73,7 +73,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void shouldResolveWithSameClassInstance() {
+    void shouldResolveWithSameClassInstance() {
         AtomicReference<Config> configRef = new AtomicReference<>();
         AtomicReference<ServiceE> serviceERef = new AtomicReference<>();
 
@@ -95,7 +95,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void shouldThrowCircularDependencyExceptionWhenACircularDependencyIsPresent() {
+    void shouldThrowCircularDependencyExceptionWhenACircularDependencyIsPresent() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceA.class, (d) -> new ServiceA(d.get(ServiceB.class)))
@@ -106,7 +106,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void get_shouldThrowMissingDependencyProviderExceptionIfProviderNotRegistered() {
+    void get_shouldThrowMissingDependencyProviderExceptionIfProviderNotRegistered() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
@@ -117,7 +117,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void create_shouldThrowMissingDependencyProviderExceptionIfProviderNotRegistered() {
+    void create_shouldThrowMissingDependencyProviderExceptionIfProviderNotRegistered() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
@@ -128,7 +128,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void shouldReturnDifferentDependenciesWhenResolvingTwice() {
+    void shouldReturnDifferentDependenciesWhenResolvingTwice() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
@@ -140,7 +140,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void get_shouldReturnDependencyFromCache() {
+    void get_shouldReturnDependencyFromCache() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
@@ -151,7 +151,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void lazyGet_shouldReturnDependencyFromCache() {
+    void lazyGet_shouldReturnDependencyFromCache() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
@@ -162,7 +162,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void create_shouldReturnNewDependency() {
+    void create_shouldReturnNewDependency() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
@@ -173,7 +173,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void lazyCreate_shouldReturnNewDependency() {
+    void lazyCreate_shouldReturnNewDependency() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
@@ -184,7 +184,7 @@ public class DependenciesTest {
     }
 
     @Test
-    public void shouldImplementHashCodeCorrectly() {
+    void shouldImplementHashCodeCorrectly() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));

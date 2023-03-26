@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 public class CircularDependencyExceptionTest {
 
     @Test
-    public void shouldThrowIfDependencyChainIsEmpty() {
+    void shouldThrowIfDependencyChainIsEmpty() {
         List<String> circularDependencies = Collections.emptyList();
 
         assertThrowsExactly(IllegalArgumentException.class, () -> {
@@ -25,7 +25,7 @@ public class CircularDependencyExceptionTest {
     }
 
     @Test
-    public void shouldCreateExpectedMessage() {
+    void shouldCreateExpectedMessage() {
         List<String> circularDependencies = Stream.of(
                 ServiceB.class, ServiceC.class, ServiceA.class, ServiceB.class
         ).map(Class::getCanonicalName).collect(Collectors.toList());

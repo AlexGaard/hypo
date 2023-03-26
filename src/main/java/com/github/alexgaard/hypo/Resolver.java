@@ -45,7 +45,7 @@ public class Resolver {
      * @param <T> type of dependency
      */
     public <T> Resolver register(Class<T> clazz, Supplier<T> provider) {
-        return register(clazz, (ignored) -> provider.get());
+        return register(clazz, ignored -> provider.get());
     }
 
     /**
@@ -81,7 +81,7 @@ public class Resolver {
      * @param <T> type of dependency
      */
     public <T> Resolver register(Class<T> clazz, String name, Supplier<T> provider) {
-        return register(clazz, name, (ignored) -> provider.get(), null);
+        return register(clazz, name, ignored -> provider.get(), null);
     }
 
     /**
@@ -94,7 +94,7 @@ public class Resolver {
      * @param <T> type of dependency
      */
     public <T> Resolver register(Class<T> clazz, String name, Supplier<T> provider, OnPostInit<T> onPostInit) {
-        return register(clazz, name, (ignored) -> provider.get(), onPostInit);
+        return register(clazz, name, ignored -> provider.get(), onPostInit);
     }
 
     /**
@@ -110,7 +110,7 @@ public class Resolver {
         String id = id(clazz, name);
 
         if (providers.containsKey(id)) {
-            log.warn("Overwriting the previously registered provider for " + id);
+            log.warn("Overwriting the previously registered provider for {}", id);
         }
 
         providers.put(id, provider);

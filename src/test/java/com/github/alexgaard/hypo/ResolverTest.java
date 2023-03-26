@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ResolverTest {
 
     @Test
-    public void shouldCallPostInitAfterInitlizingDependencies() {
+    void shouldCallPostInitAfterInitlizingDependencies() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceA.class, (d) -> new ServiceA(d.get(ServiceB.class)))
@@ -30,7 +30,7 @@ public class ResolverTest {
     }
 
     @Test
-    public void shouldOverwritePreviouslyRegisteredProvider() {
+    void shouldOverwritePreviouslyRegisteredProvider() {
         AtomicBoolean called = new AtomicBoolean(false);
 
         Resolver resolver = new Resolver()
@@ -48,7 +48,7 @@ public class ResolverTest {
 
 
     @Test
-    public void shouldOverwritePreviouslyRegisteredProviderWithPostInit() {
+    void shouldOverwritePreviouslyRegisteredProviderWithPostInit() {
         AtomicBoolean called = new AtomicBoolean(false);
 
         Resolver resolver = new Resolver()
@@ -74,7 +74,7 @@ public class ResolverTest {
     }
 
     @Test
-    public void shouldRegisterProviderWithName() {
+    void shouldRegisterProviderWithName() {
         Resolver resolver = new Resolver()
                 .register(Config.class, "config", Config::new);
 
@@ -85,7 +85,7 @@ public class ResolverTest {
     }
 
     @Test
-    public void shouldRegisterProviderWithNameAndPostInit() {
+    void shouldRegisterProviderWithNameAndPostInit() {
         AtomicBoolean called = new AtomicBoolean(false);
 
         Resolver resolver = new Resolver()
@@ -101,7 +101,7 @@ public class ResolverTest {
     }
 
     @Test
-    public void shouldRegisterSupplierWithNameAndPostInit() {
+    void shouldRegisterSupplierWithNameAndPostInit() {
         AtomicBoolean called = new AtomicBoolean(false);
 
         Resolver resolver = new Resolver()

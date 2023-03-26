@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class MissingDependencyProviderExceptionTest {
 
     @Test
-    public void shouldReturnCorrectMessage() {
+    void shouldReturnCorrectMessage() {
         Map<String, Provider<?>> providers = new HashMap<>();
         providers.put(id(Config.class), (d) -> new Config());
         providers.put(id(ServiceD.class, "test"), (d) -> new ServiceDImpl());
