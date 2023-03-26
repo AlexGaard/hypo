@@ -162,6 +162,17 @@ public class DependenciesTest {
     }
 
     @Test
+    void lazyGet_shouldReturnDependencyWithNameFromCache() {
+        Resolver resolver = new Resolver()
+                .register(Config.class, (d) -> new Config())
+                .register(ServiceE.class, "test", (d) -> new ServiceE(d.get(Config.class)));
+
+        Dependencies d = resolver.resolve();
+
+        assertNotNull(d.lazyGet(ServiceE.class, "test").get());
+    }
+
+    @Test
     void create_shouldReturnNewDependency() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
@@ -181,6 +192,17 @@ public class DependenciesTest {
         Dependencies d = resolver.resolve();
 
         assertNotEquals(d.lazyCreate(ServiceE.class).get(), d.lazyCreate(ServiceE.class).get());
+    }
+
+    @Test
+    void lazyCreate_shouldReturnNewDependencyWithName() {
+        Resolver resolver = new Resolver()
+                .register(Config.class, (d) -> new Config())
+                .register(ServiceE.class, "test", (d) -> new ServiceE(d.get(Config.class)));
+
+        Dependencies d = resolver.resolve();
+
+        assertNotNull(d.lazyCreate(ServiceE.class, "test").get());
     }
 
     @Test
