@@ -1,5 +1,9 @@
 # Hypo - zero-overhead dependency injection without reflection
 
+[![](https://jitpack.io/v/AlexGaard/hypo.svg)](https://jitpack.io/#AlexGaard/hypo) [![Tests](https://github.com/AlexGaard/hypo/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/AlexGaard/hypo/actions/workflows/test.yml)
+
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=AlexGaard_hypo&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=AlexGaard_hypo) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=AlexGaard_hypo&metric=bugs)](https://sonarcloud.io/summary/new_code?id=AlexGaard_hypo) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=AlexGaard_hypo&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=AlexGaard_hypo) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=AlexGaard_hypo&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=AlexGaard_hypo)
+
 Hypo is a minimalistic dependency injection library that does not rely on reflection, annotations or an extra processing step during compilation.
 Hypo has no side effects while resolving dependencies, which makes it very easy to test and verify that the dependency graph is resolved as expected.
 
@@ -87,7 +91,7 @@ Resolver resolver = new Resolver()
 Gradle:
 ```kotlin
 repositories {
-    maven { url 'https://jitpack.io' }
+	maven { setUrl("https://jitpack.io") }
 }
 ```
 
