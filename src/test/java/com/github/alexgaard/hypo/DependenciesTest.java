@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DependenciesTest {
+class DependenciesTest {
 
     @Test
     void shouldResolveDependencies() {
