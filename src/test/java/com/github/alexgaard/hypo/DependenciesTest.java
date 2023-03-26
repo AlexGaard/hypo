@@ -184,6 +184,17 @@ class DependenciesTest {
     }
 
     @Test
+    void create_shouldNotCacheDependency() {
+        Resolver resolver = new Resolver()
+                .register(Config.class, (d) -> new Config())
+                .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
+
+        Dependencies d = resolver.resolve();
+
+        assertNotEquals(d.create(ServiceE.class), d.get(ServiceE.class));
+    }
+
+    @Test
     void lazyCreate_shouldReturnNewDependency() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())

@@ -16,15 +16,15 @@ import static com.github.alexgaard.hypo.util.DependencyId.id;
  */
 public class Dependencies {
 
-    protected final Logger log = LoggerFactory.getLogger(getClass());
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-    protected final Deque<String> initializationStack;
+    private final Deque<String> initializationStack;
 
-    protected final Map<String, Object> cache;
+    private final Map<String, Object> cache;
 
-    protected final Map<String, Provider<?>> providers;
+    private final Map<String, Provider<?>> providers;
 
-    protected Dependencies(Map<String, Provider<?>> providers) {
+    Dependencies(Map<String, Provider<?>> providers) {
         initializationStack = new ArrayDeque<>();
         cache = new HashMap<>();
 
@@ -52,10 +52,12 @@ public class Dependencies {
      * @param <T> type of dependency
      */
     public <T> T get(Class<T> clazz, String name) {
-        T dependency = (T) cache.get(id(clazz, name));
+        String dependencyId = id(clazz, name);
+        T dependency = (T) cache.get(dependencyId);
 
         if (dependency == null) {
-            return create(clazz, name);
+            dependency = create(clazz, name);
+            cache.put(dependencyId, dependency);
         }
 
         return dependency;
@@ -68,7 +70,7 @@ public class Dependencies {
      * @param <T> type of dependency
      */
     public <T> T create(Class<T> clazz) {
-       return create(clazz, null);
+        return create(clazz, null);
     }
 
     /**
@@ -94,7 +96,6 @@ public class Dependencies {
         initializationStack.add(dependencyId);
 
         T dependency = (T) getProvider(dependencyId).provide(this);
-        cache.put(dependencyId, dependency);
 
         initializationStack.pop();
 
@@ -160,7 +161,7 @@ public class Dependencies {
         return Objects.hash(cache, providers);
     }
 
-    protected void initialize() {
+    void initialize() {
         log.debug("Initializing dependencies with registered providers {}", providers);
 
         providers.forEach((clazz, provider) -> {
