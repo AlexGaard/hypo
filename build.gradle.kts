@@ -3,10 +3,11 @@ val junitVersion = "5.9.2"
 
 plugins {
 	`java-library`
+	`maven-publish`
 }
 
 group = "com.github.alexgaard"
-version = "1.0.0"
+version = project.property("release_version") ?: throw IllegalStateException("release_version is missing")
 
 repositories {
 	mavenCentral()
@@ -22,6 +23,10 @@ dependencies {
 
 tasks.getByName<Test>("test") {
 	useJUnitPlatform()
+}
+
+tasks.register("getVersion") {
+	print(version)
 }
 
 java {

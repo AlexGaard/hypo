@@ -1,0 +1,33 @@
+name: Main
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - gradle.properties
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+      - name: Run tests
+        run: ./gradlew check
+      - name: Get version
+        run: echo "VERSION=$(./gradlew getVersion --console=plain -q)" >> $GITHUB_ENV
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ env.VERSION }}
+          tag_name: ${{ env.VERSION }}
+          prerelease: false
