@@ -2,6 +2,8 @@ package com.github.alexgaard.hypo.util;
 
 public class DependencyId {
 
+    private DependencyId() {}
+
     public static String id(Class<?> clazz) {
         return clazz.getCanonicalName();
     }

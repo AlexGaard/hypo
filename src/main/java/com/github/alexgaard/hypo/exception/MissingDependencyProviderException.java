@@ -3,7 +3,6 @@ package com.github.alexgaard.hypo.exception;
 import com.github.alexgaard.hypo.Provider;
 
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
