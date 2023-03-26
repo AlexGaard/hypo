@@ -1,4 +1,4 @@
-# Hypo - zero-overhead dependency injection without reflection
+# Hypo
 
 [![](https://jitpack.io/v/AlexGaard/hypo.svg)](https://jitpack.io/#AlexGaard/hypo) [![Tests](https://github.com/AlexGaard/hypo/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/AlexGaard/hypo/actions/workflows/test.yml)
 
