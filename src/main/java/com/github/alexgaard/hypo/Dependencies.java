@@ -35,7 +35,7 @@ public class Dependencies {
         T dependency = (T) cache.get(id(clazz, name));
 
         if (dependency == null) {
-            return create(clazz);
+            return create(clazz, name);
         }
 
         return dependency;
@@ -75,6 +75,19 @@ public class Dependencies {
         return () -> create(clazz);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Dependencies that = (Dependencies) o;
+        return cache.equals(that.cache) && providers.equals(that.providers);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(cache, providers);
+    }
+
     protected void initialize() {
         log.debug("Initializing dependencies with registered providers {}", providers);
 
@@ -90,7 +103,7 @@ public class Dependencies {
         Provider<?> provider = providers.get(id);
 
         if (provider == null) {
-            throw new MissingDependencyProviderException(id);
+            throw new MissingDependencyProviderException(id, providers);
         }
 
         return provider;

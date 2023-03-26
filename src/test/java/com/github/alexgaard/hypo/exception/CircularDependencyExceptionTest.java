@@ -5,16 +5,27 @@ import com.github.alexgaard.hypo.example.ServiceB;
 import com.github.alexgaard.hypo.example.ServiceC;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 public class CircularDependencyExceptionTest {
 
     @Test
-    public void shouldThrowCircularDependencyException() {
+    public void shouldThrowIfDependencyChainIsEmpty() {
+        List<String> circularDependencies = Collections.emptyList();
+
+        assertThrowsExactly(IllegalArgumentException.class, () -> {
+            new CircularDependencyException(circularDependencies);
+        });
+    }
+
+    @Test
+    public void shouldCreateExpectedMessage() {
         List<String> circularDependencies = Stream.of(
                 ServiceB.class, ServiceC.class, ServiceA.class, ServiceB.class
         ).map(Class::getCanonicalName).collect(Collectors.toList());

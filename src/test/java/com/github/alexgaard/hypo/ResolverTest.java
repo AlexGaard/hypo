@@ -1,107 +1,116 @@
 package com.github.alexgaard.hypo;
 
 import com.github.alexgaard.hypo.example.*;
-import com.github.alexgaard.hypo.exception.CircularDependencyException;
+import com.github.alexgaard.hypo.exception.MissingDependencyProviderException;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ResolverTest {
 
     @Test
-    public void shouldResolveDependencies() {
-        Dependencies dependencies = new Resolver()
-                .register(Config.class, Config::new)
-                .register(ServiceE.class, (r) -> new ServiceE(r.get(Config.class)))
-                .resolve();
-
-        assertNotNull(dependencies.get(Config.class));
-        assertNotNull(dependencies.get(ServiceE.class));
-    }
-
-    @Test
-    public void get_shouldReturnTheSameDependency() {
-        Dependencies dependencies = new Resolver()
-                .register(Config.class, Config::new)
-                .resolve();
-
-        assertEquals(dependencies.get(Config.class), dependencies.get(Config.class));
-    }
-
-    @Test
-    public void create_shouldReturnTheDifferentDependencies() {
-        Dependencies dependencies = new Resolver()
-                .register(Config.class, Config::new)
-                .resolve();
-
-        assertNotEquals(dependencies.create(Config.class), dependencies.create(Config.class));
-    }
-
-    @Test
-    public void shouldResolveSameClassWithDifferentNames() {
-        Dependencies dependencies = new Resolver()
-                .register(Config.class, Config::new)
-                .register(ServiceE.class, (r) -> new ServiceE(r.get(Config.class)))
-                .register(ServiceE.class, "s1", (r) -> new ServiceE(r.get(Config.class)))
-                .register(ServiceE.class, "s2", (r) -> new ServiceE(r.get(Config.class)))
-                .resolve();
-
-        ServiceE s = dependencies.get(ServiceE.class);
-        ServiceE s1 = dependencies.get(ServiceE.class, "s1");
-        ServiceE s2 = dependencies.get(ServiceE.class, "s2");
-
-        assertNotNull(s);
-        assertNotNull(s1);
-        assertNotNull(s2);
-
-        assertNotEquals(s, s1);
-        assertNotEquals(s, s2);
-        assertNotEquals(s1, s2);
-    }
-
-    @Test
-    public void shouldGetSameDependencyIfNameIsNull() {
-        Dependencies dependencies = new Resolver()
-                .register(Config.class, Config::new)
-                .register(ServiceE.class, (r) -> new ServiceE(r.get(Config.class)))
-                .resolve();
-
-        assertEquals(dependencies.get(ServiceE.class), dependencies.get(ServiceE.class, null));
-    }
-
-    @Test
-    public void shouldResolveWithSameClassInstance() {
-        AtomicReference<Config> configRef = new AtomicReference<>();
-        AtomicReference<ServiceE> serviceERef = new AtomicReference<>();
-
-        Dependencies dependencies = new Resolver()
-                .register(Config.class, (r) -> {
-                    var config = new Config();
-                    configRef.set(config);
-                    return config;
-                })
-                .register(ServiceE.class, (r) -> {
-                    var serviceE = new ServiceE(r.get(Config.class));
-                    serviceERef.set(serviceE);
-                    return serviceE;
-                })
-                .resolve();
-
-        assertEquals(configRef.get(), dependencies.get(Config.class));
-        assertEquals(serviceERef.get(), dependencies.get(ServiceE.class));
-    }
-
-    @Test
-    public void shouldThrowCircularDependencyException() {
+    public void shouldCallPostInitAfterInitlizingDependencies() {
         Resolver resolver = new Resolver()
-                .register(Config.class, (r) -> new Config())
-                .register(ServiceA.class, (r) -> new ServiceA(r.get(ServiceB.class)))
-                .register(ServiceB.class, (r) -> new ServiceB(r.get(ServiceC.class)))
-                .register(ServiceC.class, (r) -> new ServiceC(r.get(ServiceA.class), r.get(ServiceD.class), r.get(Config.class)));
+                .register(Config.class, (d) -> new Config())
+                .register(ServiceA.class, (d) -> new ServiceA(d.get(ServiceB.class)))
+                .register(ServiceB.class, (d) -> new ServiceB(d.get(ServiceC.class)))
+                .register(ServiceC.class,
+                        (d) -> new ServiceC(null, d.get(ServiceD.class), d.get(Config.class)),
+                        (d, serviceC) -> serviceC.setServiceA(d.get(ServiceA.class))
+                )
+                .register(ServiceD.class, (d) -> new ServiceDImpl());
 
-        assertThrowsExactly(CircularDependencyException.class, resolver::resolve);
+        Dependencies dependencies = resolver.resolve();
+
+        ServiceC serviceC = dependencies.get(ServiceC.class);
+
+        assertNotNull(serviceC.getServiceA());
+    }
+
+    @Test
+    public void shouldOverwritePreviouslyRegisteredProvider() {
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        Resolver resolver = new Resolver()
+                .register(Config.class, (d) -> new Config())
+                .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)))
+                .register(ServiceE.class, (d) -> {
+                    called.set(true);
+                    return new ServiceE(d.get(Config.class));
+                });
+
+        resolver.resolve();
+
+        assertTrue(called.get());
+    }
+
+
+    @Test
+    public void shouldOverwritePreviouslyRegisteredProviderWithPostInit() {
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        Resolver resolver = new Resolver()
+                .register(Config.class, (d) -> new Config())
+                .register(ServiceA.class, (d) -> new ServiceA(d.get(ServiceB.class)))
+                .register(ServiceB.class, (d) -> new ServiceB(d.get(ServiceC.class)))
+                .register(ServiceC.class,
+                        (d) -> new ServiceC(null, d.get(ServiceD.class), d.get(Config.class)),
+                        (d, serviceC) -> serviceC.setServiceA(d.get(ServiceA.class))
+                )
+                .register(ServiceC.class,
+                        (d) -> new ServiceC(null, d.get(ServiceD.class), d.get(Config.class)),
+                        (d, serviceC) -> {
+                            called.set(true);
+                            serviceC.setServiceA(d.get(ServiceA.class));
+                        }
+                )
+                .register(ServiceD.class, (d) -> new ServiceDImpl());
+
+        resolver.resolve();
+
+        assertTrue(called.get());
+    }
+
+    @Test
+    public void shouldRegisterProviderWithName() {
+        Resolver resolver = new Resolver()
+                .register(Config.class, "config", Config::new);
+
+        Dependencies dependencies = resolver.resolve();
+
+        assertThrowsExactly(MissingDependencyProviderException.class, () -> dependencies.get(Config.class));
+        assertNotNull(dependencies.get(Config.class, "config"));
+    }
+
+    @Test
+    public void shouldRegisterProviderWithNameAndPostInit() {
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        Resolver resolver = new Resolver()
+                .register(Config.class, "config", Config::new)
+                .register(ServiceE.class, "e",
+                        (d) -> new ServiceE(d.get(Config.class, "config")),
+                        (dependencies, serviceE) -> called.set(true));
+
+        Dependencies dependencies = resolver.resolve();
+
+        assertNotNull(dependencies.get(ServiceE.class, "e"));
+        assertTrue(called.get());
+    }
+
+    @Test
+    public void shouldRegisterSupplierWithNameAndPostInit() {
+        AtomicBoolean called = new AtomicBoolean(false);
+
+        Resolver resolver = new Resolver()
+                .register(Config.class, "config", Config::new, (dependencies, serviceE) -> called.set(true));
+
+        Dependencies dependencies = resolver.resolve();
+
+        assertNotNull(dependencies.get(Config.class, "config"));
+        assertTrue(called.get());
     }
 
 }
