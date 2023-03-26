@@ -4,6 +4,7 @@ val junitVersion = "5.9.2"
 plugins {
 	`java-library`
 	`maven-publish`
+	jacoco
 }
 
 group = "com.github.alexgaard"
@@ -27,6 +28,21 @@ tasks.getByName<Test>("test") {
 
 tasks.register("getVersion") {
 	print(version)
+}
+
+tasks.test {
+	finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+}
+
+tasks.jacocoTestReport {
+	reports {
+		xml.required.set(true)
+		html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+	}
 }
 
 java {
