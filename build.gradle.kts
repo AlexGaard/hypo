@@ -37,3 +37,39 @@ java {
 	withSourcesJar()
 	withJavadocJar()
 }
+
+publishing {
+	publications {
+		create<MavenPublication>("maven") {
+			groupId = "com.github.alexgaard"
+			artifactId = "hypo"
+			version = project.version.toString()
+
+			from(components["java"])
+
+			pom {
+				name.set("Hypo")
+				description.set("Hypo - zero-overhead dependency injection without reflection")
+				url.set("https://github.com/AlexGaard/hypo")
+				developers {
+					developer {
+						id.set("alexgaard")
+						name.set("Alexander Gård")
+						email.set("alexander.olav.gaard@gmail.com")
+					}
+				}
+				licenses {
+					license {
+						name.set("MIT License")
+						url.set("https://github.com/AlexGaard/hypo/blob/main/LICENSE")
+					}
+				}
+				scm {
+					connection.set("scm:git:git://github.com/alexgaard/hypo.git")
+					developerConnection.set("scm:git:ssh://github.com/alexgaard/hypo.git")
+					url.set("https://github.com/AlexGaard/hypo")
+				}
+			}
+		}
+	}
+}
