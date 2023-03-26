@@ -5,6 +5,8 @@ on:
       SONAR_TOKEN:
         required: true
   push:
+    branches-ignore:
+      - main
 jobs:
   build:
     name: Build and analyze
