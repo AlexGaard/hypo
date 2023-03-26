@@ -10,6 +10,9 @@ import java.util.function.Supplier;
 
 import static com.github.alexgaard.hypo.util.DependencyId.id;
 
+/**
+ * Resolves a set of registered dependency providers into an immutable instance of {@link Dependencies}
+ */
 public class Resolver {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -23,30 +26,86 @@ public class Resolver {
         this.onPostInitListeners = new HashMap<>();
     }
 
+    /**
+     * Register a dependency provider for the specified dependency.
+     * @param clazz class of dependency
+     * @param provider provider for the dependency
+     * @return the resolver instance
+     * @param <T> type of dependency
+     */
     public <T> Resolver register(Class<T> clazz, Provider<T> provider) {
         return register(clazz, null, provider, null);
     }
 
+    /**
+     * Register a dependency provider for the specified dependency.
+     * @param clazz class of dependency
+     * @param provider provider for the dependency
+     * @return the resolver instance
+     * @param <T> type of dependency
+     */
     public <T> Resolver register(Class<T> clazz, Supplier<T> provider) {
         return register(clazz, (ignored) -> provider.get());
     }
 
+    /**
+     * Register a dependency provider for the specified dependency.
+     * @param clazz class of dependency
+     * @param provider provider for the dependency
+     * @param onPostInit callback which is triggered after the initialization of dependencies
+     * @return the resolver instance
+     * @param <T> type of dependency
+     */
     public <T> Resolver register(Class<T> clazz, Provider<T> provider, OnPostInit<T> onPostInit) {
         return register(clazz, null, provider, onPostInit);
     }
 
+    /**
+     * Register a dependency provider for the specified dependency.
+     * @param clazz class of dependency
+     * @param name name of the dependency
+     * @param provider provider for the dependency
+     * @return the resolver instance
+     * @param <T> type of dependency
+     */
     public <T> Resolver register(Class<T> clazz, String name, Provider<T> provider) {
         return register(clazz, name, provider, null);
     }
 
+    /**
+     * Register a dependency provider for the specified dependency.
+     * @param clazz class of dependency
+     * @param name name of the dependency
+     * @param provider provider for the dependency
+     * @return the resolver instance
+     * @param <T> type of dependency
+     */
     public <T> Resolver register(Class<T> clazz, String name, Supplier<T> provider) {
         return register(clazz, name, (ignored) -> provider.get(), null);
     }
 
+    /**
+     * Register a dependency provider for the specified dependency.
+     * @param clazz class of dependency
+     * @param name name of the dependency
+     * @param provider provider for the dependency
+     * @param onPostInit callback which is triggered after the initialization of dependencies
+     * @return the resolver instance
+     * @param <T> type of dependency
+     */
     public <T> Resolver register(Class<T> clazz, String name, Supplier<T> provider, OnPostInit<T> onPostInit) {
         return register(clazz, name, (ignored) -> provider.get(), onPostInit);
     }
 
+    /**
+     * Register a dependency provider for the specified dependency.
+     * @param clazz class of dependency
+     * @param name name of the dependency
+     * @param provider provider for the dependency
+     * @param onPostInit callback which is triggered after the initialization of dependencies
+     * @return the resolver instance
+     * @param <T> type of dependency
+     */
     public <T> Resolver register(Class<T> clazz, String name, Provider<T> provider, OnPostInit<T> onPostInit) {
         String id = id(clazz, name);
 
@@ -64,6 +123,13 @@ public class Resolver {
         return this;
     }
 
+    /**
+     * Uses the registered providers to resolve a new set of dependencies.
+     * The dependencies are resolved immediately and will throw a {@link com.github.alexgaard.hypo.exception.CircularDependencyException}
+     * if a circular dependency is present in the registered providers.
+     * This method can be called multiple times, and will return a new set of dependencies each time.
+     * @return a new set of dependencies
+     */
     public Dependencies resolve() {
         Dependencies dependencies = new Dependencies(Map.copyOf(providers));
 
