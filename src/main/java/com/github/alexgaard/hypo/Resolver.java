@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.github.alexgaard.hypo.util.DependencyId.id;
@@ -119,6 +120,51 @@ public class Resolver {
             DependencyId dependencyId = new DependencyId(clazz, name);
             onPostInitListeners.put(dependencyId, onPostInit);
         }
+
+        return this;
+    }
+
+    /**
+     * Registers the providers from a module. A module is a grouping of dependency providers that are registered together.
+     * Ex:
+     * <pre>{@code
+     * Dependencies dependencies = new Resolver()
+     *                .registerModule(this::configs)
+     *                .resolve();
+     *
+     *private void configs(Resolver resolver) {
+     *    resolver.register(ConfigA.class, ConfigA::new)
+     *        .register(ConfigB.class, ConfigB::new);
+     *}
+     * }</pre>
+     * @param module a consumer which is invoked with the resolver instance
+     * @return the resolver instance
+     */
+    public Resolver registerModule(Consumer<Resolver> module) {
+        module.accept(this);
+        return this;
+    }
+
+    /**
+     * Copies the registered providers and listeners from another resolver.
+     * If the providers or listeners already exists, then they will be overwritten.
+     * @param resolverSupplier supplies a resolver to copy from
+     * @return the resolver instance
+     */
+    public Resolver copyFrom(Supplier<Resolver> resolverSupplier) {
+        return copyFrom(resolverSupplier.get());
+    }
+
+    /**
+     * Copies the registered providers and listeners from another resolver.
+     * If the providers or listeners already exists, then they will be overwritten.
+     * @param resolver the resolver to copy from
+     * @return the resolver instance
+     */
+    public Resolver copyFrom(Resolver resolver) {
+        providers.putAll(resolver.providers);
+
+        onPostInitListeners.putAll(resolver.onPostInitListeners);
 
         return this;
     }

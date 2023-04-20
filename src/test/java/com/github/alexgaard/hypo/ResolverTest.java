@@ -113,4 +113,50 @@ class ResolverTest {
         assertTrue(called.get());
     }
 
+    @Test
+    void shouldRegisterProvidersFromModule() {
+        Resolver resolver = new Resolver()
+                .registerModule(this::configs);
+
+        Dependencies dependencies = resolver.resolve();
+
+        assertNotNull(dependencies.get(Config.class));
+        assertNotNull(dependencies.get(ServiceE.class));
+    }
+
+    @Test
+    void shouldCopyFromResolverSupplier() {
+        Resolver resolver = new Resolver()
+                .register(Config.class, Config::new)
+                .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
+
+        Resolver resolver2 = new Resolver()
+                .copyFrom(() -> resolver);
+
+        Dependencies dependencies = resolver2.resolve();
+
+        assertNotNull(dependencies.get(Config.class));
+        assertNotNull(dependencies.get(ServiceE.class));
+    }
+
+    @Test
+    void shouldCopyFromResolver() {
+        Resolver resolver = new Resolver()
+                .register(Config.class, Config::new)
+                .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
+
+        Resolver resolver2 = new Resolver()
+                .copyFrom(resolver);
+
+        Dependencies dependencies = resolver2.resolve();
+
+        assertNotNull(dependencies.get(Config.class));
+        assertNotNull(dependencies.get(ServiceE.class));
+    }
+
+    private void configs(Resolver resolver) {
+        resolver.register(Config.class, Config::new)
+                .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
+    }
+
 }
