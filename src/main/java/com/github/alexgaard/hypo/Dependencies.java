@@ -44,7 +44,7 @@ public class Dependencies {
 
     /**
      * Retrieves a singleton dependency from the cache.
-     * The name is used to distinguish dependencies of the same class form each other.
+     * The name is used to distinguish dependencies of the same class from each other.
      * If the dependency does not exist, then it will be created once.
      * @param clazz class of dependency
      * @param name name of the dependency
@@ -75,7 +75,7 @@ public class Dependencies {
 
     /**
      * Create a new dependency of the requested class with a registered provider.
-     * The name is used to distinguish dependencies of the same class form each other.
+     * The name is used to distinguish dependencies of the same class from each other.
      * @param clazz class of dependency
      * @param name name of the dependency
      * @return the requested dependency
@@ -115,7 +115,7 @@ public class Dependencies {
 
     /**
      * Retrieves a singleton dependency from the cache lazily with a supplier.
-     * The name is used to distinguish dependencies of the same class form each other.
+     * The name is used to distinguish dependencies of the same class from each other.
      * If the dependency does not exist, then it will be created once.
      * @param clazz class of dependency
      * @param name name of the dependency
@@ -138,7 +138,7 @@ public class Dependencies {
 
     /**
      * Retrieves a new dependency from the cache lazily with a supplier.
-     * The name is used to distinguish dependencies of the same class form each other.
+     * The name is used to distinguish dependencies of the same class from each other.
      * @param clazz class of dependency
      * @param name name of the dependency
      * @return a supplier of the requested dependency
