@@ -165,8 +165,10 @@ public class Dependencies {
         log.debug("Initializing dependencies with registered providers {}", providers);
 
         providers.forEach((clazz, provider) -> {
-            Object dependency = provider.provide(this);
-            cache.put(clazz, dependency);
+            if (!cache.containsKey(clazz)) {
+                Object dependency = provider.provide(this);
+                cache.put(clazz, dependency);
+            }
         });
 
         log.debug("Created dependencies after initialization {}", cache);
