@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.github.alexgaard.hypo.util.DependencyId.id;
+import static com.github.alexgaard.hypo.DependencyId.id;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MissingDependencyProviderExceptionTest {

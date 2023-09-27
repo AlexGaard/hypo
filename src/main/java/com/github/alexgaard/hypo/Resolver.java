@@ -1,30 +1,41 @@
 package com.github.alexgaard.hypo;
 
+import com.github.alexgaard.hypo.exception.ConstructorInjectionFailedException;
+import com.github.alexgaard.hypo.exception.MultipleMatchingConstructorException;
+import com.github.alexgaard.hypo.exception.NoMatchingConstructorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.lang.reflect.Constructor;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
-import static com.github.alexgaard.hypo.util.DependencyId.id;
+import static com.github.alexgaard.hypo.DependencyId.id;
 
 /**
  * Resolves a set of registered dependency providers into an immutable instance of {@link Dependencies}
  */
 public class Resolver {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(Resolver.class);
 
-    private final Map<String, Provider<?>> providers;
+    private final Map<String, Provider<?>> providers = new HashMap<>();
 
-    private final Map<DependencyId, OnPostInit> onPostInitListeners;
+    private final Map<DependencyId, OnPostInit> onPostInitListeners = new HashMap<>();
 
-    public Resolver() {
-        this.providers = new HashMap<>();
-        this.onPostInitListeners = new HashMap<>();
+    private final Set<Class<?>> constructorClasses = new HashSet<>();
+
+    /**
+     * Register a dependency, with an automatically created provider that invokes the constructor of the class.
+     * The provider tries to find the constructor with the most matching parameters first.
+     * @param clazz class of dependency
+     * @return the resolver instance
+     */
+    public Resolver register(Class<?> clazz) {
+        constructorClasses.add(clazz);
+        return this;
     }
 
     /**
@@ -166,6 +177,8 @@ public class Resolver {
 
         onPostInitListeners.putAll(resolver.onPostInitListeners);
 
+        constructorClasses.addAll(resolver.constructorClasses);
+
         return this;
     }
 
@@ -177,6 +190,11 @@ public class Resolver {
      * @return a new set of dependencies
      */
     public Dependencies resolve() {
+        // Register providers for constructors
+        constructorClasses.forEach(constructorClass -> {
+            register(constructorClass, (Provider) createProviderFromConstructor(constructorClass, constructorClasses, providers));
+        });
+
         Dependencies dependencies = new Dependencies(Map.copyOf(providers));
 
         dependencies.initialize();
@@ -190,35 +208,49 @@ public class Resolver {
         return dependencies;
     }
 
+    private static Provider<?> createProviderFromConstructor(
+            Class<?> constructorClass,
+            Set<Class<?>> availableConstructors,
+            Map<String, Provider<?>> availableProviders
+    ) {
+        List<Constructor<?>> constructors = Arrays.stream(constructorClass.getConstructors())
+                .sorted((c1, c2) -> Integer.compare(c1.getParameterCount(), c2.getParameterCount()) * -1)
+                .filter(constructor -> {
+                    return Arrays.stream(constructor.getParameterTypes())
+                            .allMatch(paramType -> availableConstructors.contains(paramType) || availableProviders.containsKey(id(paramType)));
+                }).collect(Collectors.toList());
+
+        if (constructors.isEmpty()) {
+            throw new NoMatchingConstructorException(constructorClass);
+        }
+
+        Constructor<?> constructorToInvoke = constructors.get(0);
+
+        constructors.forEach(constructor -> {
+            boolean hasOtherConstructorWithMatchingParams = constructor != constructorToInvoke
+                    && constructor.getParameterCount() == constructorToInvoke.getParameterCount();
+
+            if (hasOtherConstructorWithMatchingParams) {
+                throw new MultipleMatchingConstructorException(constructorClass, constructorToInvoke, constructor);
+            }
+        });
+
+        return dependencies -> {
+            Object[] constructorArgs = Arrays.stream(constructorToInvoke.getParameterTypes())
+                    .map(dependencies::get)
+                    .toArray();
+
+            try {
+                return constructorToInvoke.newInstance(constructorArgs);
+            } catch (Throwable throwable) {
+                throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, throwable);
+            }
+        };
+    }
+
     public interface OnPostInit<T> {
 
         void onPostInit(Dependencies dependencies, T dependency);
-
-    }
-
-    public static class DependencyId {
-
-        public final Class<?> clazz;
-
-        public final String name;
-
-        public DependencyId(Class<?> clazz, String name) {
-            this.clazz = clazz;
-            this.name = name;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            DependencyId that = (DependencyId) o;
-            return clazz.equals(that.clazz) && Objects.equals(name, that.name);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(clazz, name);
-        }
 
     }
 

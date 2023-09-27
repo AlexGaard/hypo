@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.function.Supplier;
 
-import static com.github.alexgaard.hypo.util.DependencyId.id;
+import static com.github.alexgaard.hypo.DependencyId.id;
+
 
 /**
  * Represents an immutable set of registered dependencies.

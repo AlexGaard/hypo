@@ -1,7 +1,10 @@
 package com.github.alexgaard.hypo;
 
 import com.github.alexgaard.hypo.example.*;
+import com.github.alexgaard.hypo.exception.ConstructorInjectionFailedException;
 import com.github.alexgaard.hypo.exception.MissingDependencyProviderException;
+import com.github.alexgaard.hypo.exception.MultipleMatchingConstructorException;
+import com.github.alexgaard.hypo.exception.NoMatchingConstructorException;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -11,7 +14,91 @@ import static org.junit.jupiter.api.Assertions.*;
 class ResolverTest {
 
     @Test
-    void shouldCallPostInitAfterInitlizingDependencies() {
+    void shouldResolveWithConstructorInjection() {
+        Resolver resolver = new Resolver()
+                .register(ServiceF.class)
+                .register(Config.class, Config::new)
+                .register(ServiceD.class, ServiceDImpl::new);
+
+        Dependencies dependencies = resolver.resolve();
+
+        assertNotNull(dependencies.get(ServiceD.class));
+        assertNotNull(dependencies.get(Config.class));
+        assertNotNull(dependencies.get(ServiceF.class));
+    }
+
+    @Test
+    void shouldResolveWithConstructorInjectionLessParameters() {
+        Resolver resolver = new Resolver()
+                .register(ServiceD.class, ServiceDImpl::new)
+                .register(ServiceF.class);
+
+        Dependencies dependencies = resolver.resolve();
+
+        assertNotNull(dependencies.get(ServiceD.class));
+        assertThrows(MissingDependencyProviderException.class, () -> dependencies.get(Config.class));
+        assertNotNull(dependencies.get(ServiceF.class));
+    }
+
+    @Test
+    void shouldResolveWithConstructorInjectionNoParameters() {
+        Resolver resolver = new Resolver()
+                .register(ServiceF.class);
+
+        Dependencies dependencies = resolver.resolve();
+
+        assertThrows(MissingDependencyProviderException.class, () -> dependencies.get(ServiceD.class));
+        assertThrows(MissingDependencyProviderException.class, () -> dependencies.get(Config.class));
+        assertNotNull(dependencies.get(ServiceF.class));
+    }
+
+    @Test
+    void shouldThrowWhenNoConstructorIsAvailable() {
+        Resolver resolver = new Resolver()
+                .register(ServiceA.class);
+
+        assertThrows(NoMatchingConstructorException.class, resolver::resolve);
+    }
+
+    @Test
+    void shouldThrowWhenMultipleMatchingConstructorsAreAvailable() {
+        Resolver resolver = new Resolver()
+                .register(ServiceG.class)
+                .register(Config.class, Config::new)
+                .register(ServiceD.class, ServiceDImpl::new);
+
+        assertThrows(MultipleMatchingConstructorException.class, resolver::resolve);
+    }
+
+    @Test
+    void shouldThrowWhenTryingToConstructorInjectAnInterface() {
+        Resolver resolver = new Resolver()
+                .register(ServiceD.class);
+
+        assertThrows(NoMatchingConstructorException.class, resolver::resolve);
+    }
+
+    @Test
+    void shouldResolveWithMultipleConstructorInjections() {
+        Resolver resolver = new Resolver()
+                .register(ServiceH.class)
+                .register(ServiceF.class)
+                .register(ServiceD.class, ServiceDImpl::new)
+                .register(Config.class);
+
+        assertDoesNotThrow(resolver::resolve);
+    }
+
+    @Test
+    void shouldThrowCorrectExceptionWhenFailDuringConstructorInjection() {
+        Resolver resolver = new Resolver()
+                .register(ServiceI.class);
+
+        assertThrows(ConstructorInjectionFailedException.class, resolver::resolve);
+    }
+
+    @Test
+    void shouldCallPostInitAfterInitializingDependencies() {
         Resolver resolver = new Resolver()
                 .register(Config.class, (d) -> new Config())
                 .register(ServiceA.class, (d) -> new ServiceA(d.get(ServiceB.class)))
