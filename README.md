@@ -4,13 +4,12 @@
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=hypo&metric=coverage)](https://sonarcloud.io/summary/new_code?id=hypo) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=hypo&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=hypo) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=hypo&metric=bugs)](https://sonarcloud.io/summary/new_code?id=hypo) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=hypo&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=hypo) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=hypo&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=hypo)
 
-Hypo is a minimalistic dependency injection library that does not rely on reflection, annotations or an extra processing step during compilation.
+Hypo is a minimalistic dependency injection library that does not rely on reflection (opt-in), annotations or an extra processing step during compilation.
 Hypo has no side effects while resolving dependencies, which makes it very easy to test and verify that the dependency graph is resolved as expected.
 
 To be able to resolve the dependency graph, Hypo uses providers (function that instantiates a dependency).
 The providers can recursively invoke other providers, which together makes up the dependency graph.
-Since the wiring of the dependencies are done inside the providers, there is no need to scan or analyze in which order to instantiate the dependencies,
-this makes Hypo very fast at resolving dependencies.
+
 
 ## Usage
 
@@ -20,7 +19,8 @@ this makes Hypo very fast at resolving dependencies.
 Resolver resolver = new Resolver()
                 .register(ServiceA.class, ServiceA::new)
                 .register(ServiceB.class, (d) -> new ServiceB(d.get(ServiceA.class)))
-                .register(ServiceC.class, (d) -> new ServiceC(d.get(ServiceA.class) d.get(ServiceB.class)));
+                .register(ServiceC.class, (d) -> new ServiceC(d.get(ServiceA.class) d.get(ServiceB.class)))
+                .register(ServiceD.class); // Opt-in reflection for automatic constructor injection
 
 Dependencies = resolver.resolve();
 
