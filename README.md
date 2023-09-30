@@ -16,13 +16,24 @@ The providers can recursively invoke other providers, which together makes up th
 ### Basic example
 
 ```java
-Resolver resolver = new Resolver()
-                .register(ServiceA.class, ServiceA::new)
-                .register(ServiceB.class, (d) -> new ServiceB(d.get(ServiceA.class)))
-                .register(ServiceC.class, (d) -> new ServiceC(d.get(ServiceA.class) d.get(ServiceB.class)))
-                .register(ServiceD.class); // Opt-in reflection for automatic constructor injection
+class ServiceA {
+    private final ServiceB serviceB;
+    public ServiceA(ServiceB serviceB) { this.serviceB = serviceB; }
+}
 
-Dependencies = resolver.resolve();
+class ServiceB {
+    private final ServiceC serviceC;
+    public ServiceB(ServiceC serviceC) { this.serviceC = serviceC; }
+}
+
+class ServiceC {}
+    
+
+Dependencies dependencies = new Resolver()
+                .register(ServiceA.class)
+                .register(ServiceB.class)
+                .register(ServiceC.class)
+                .resolve();
 
 ServiceA serviceA = dependencies.get(ServiceA.class); // Returns a singleton of ServiceA
 
