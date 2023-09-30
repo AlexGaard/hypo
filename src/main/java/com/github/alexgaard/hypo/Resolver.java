@@ -7,8 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -25,16 +27,18 @@ public class Resolver {
 
     private final Map<DependencyId, OnPostInit> onPostInitListeners = new HashMap<>();
 
-    private final Set<Class<?>> constructorClasses = new HashSet<>();
+    private final Set<Class<?>> constructorInjectionClasses = new HashSet<>();
 
     /**
      * Register a dependency, with an automatically created provider that invokes the constructor of the class.
      * The provider tries to find the constructor with the most matching parameters first.
+     * If no matching constructor can be found, a {@link NoMatchingConstructorException} will be thrown when resolving the dependencies.
+     * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
      * @param clazz class of dependency
      * @return the resolver instance
      */
     public Resolver register(Class<?> clazz) {
-        constructorClasses.add(clazz);
+        constructorInjectionClasses.add(clazz);
         return this;
     }
 
@@ -177,7 +181,7 @@ public class Resolver {
 
         onPostInitListeners.putAll(resolver.onPostInitListeners);
 
-        constructorClasses.addAll(resolver.constructorClasses);
+        constructorInjectionClasses.addAll(resolver.constructorInjectionClasses);
 
         return this;
     }
@@ -191,8 +195,8 @@ public class Resolver {
      */
     public Dependencies resolve() {
         // Register providers for constructors
-        constructorClasses.forEach(constructorClass -> {
-            register(constructorClass, (Provider) createProviderFromConstructor(constructorClass, constructorClasses, providers));
+        constructorInjectionClasses.forEach(constructorClass -> {
+            register(constructorClass, (Provider) createProviderFromConstructor(constructorClass, constructorInjectionClasses, providers));
         });
 
         Dependencies dependencies = new Dependencies(Map.copyOf(providers));
@@ -213,15 +217,15 @@ public class Resolver {
             Set<Class<?>> availableConstructors,
             Map<String, Provider<?>> availableProviders
     ) {
+        Predicate<Class<?>> isParamMatching = paramType -> availableConstructors.contains(paramType) || availableProviders.containsKey(id(paramType));
+
         List<Constructor<?>> constructors = Arrays.stream(constructorClass.getConstructors())
                 .sorted((c1, c2) -> Integer.compare(c1.getParameterCount(), c2.getParameterCount()) * -1)
-                .filter(constructor -> {
-                    return Arrays.stream(constructor.getParameterTypes())
-                            .allMatch(paramType -> availableConstructors.contains(paramType) || availableProviders.containsKey(id(paramType)));
-                }).collect(Collectors.toList());
+                .filter(constructor -> Arrays.stream(constructor.getParameterTypes()).allMatch(isParamMatching))
+                .collect(Collectors.toList());
 
         if (constructors.isEmpty()) {
-            throw new NoMatchingConstructorException(constructorClass);
+            throw new NoMatchingConstructorException(constructorClass, isParamMatching);
         }
 
         Constructor<?> constructorToInvoke = constructors.get(0);
@@ -242,7 +246,9 @@ public class Resolver {
 
             try {
                 return constructorToInvoke.newInstance(constructorArgs);
-            } catch (Throwable throwable) {
+            } catch (InvocationTargetException ite) {
+                throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, ite.getCause());
+            }catch (Throwable throwable) {
                 throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, throwable);
             }
         };
