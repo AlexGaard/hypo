@@ -248,8 +248,8 @@ public class Resolver {
                 return constructorToInvoke.newInstance(constructorArgs);
             } catch (InvocationTargetException ite) {
                 throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, ite.getCause());
-            }catch (Throwable throwable) {
-                throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, throwable);
+            }catch (Exception exception) {
+                throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, exception);
             }
         };
     }
