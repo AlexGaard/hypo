@@ -34,7 +34,7 @@ public class NoMatchingConstructorException extends RuntimeException {
 
         return format(
                 "Unable to find a constructor in %s with parameters that matches registered dependencies.\n" +
-                        "Make sure that all the parameters for at least on of the constructors listed below have been registered.\n" +
+                        "Make sure that all the parameters for at least one of the constructors listed below have been registered.\n" +
                         "Available constructors:\n%s",
                 classWithBadConstructor.getCanonicalName(),
                 constructorsStr
