@@ -3,6 +3,7 @@ package com.github.alexgaard.hypo;
 import com.github.alexgaard.hypo.exception.ConstructorInjectionFailedException;
 import com.github.alexgaard.hypo.exception.MultipleMatchingConstructorException;
 import com.github.alexgaard.hypo.exception.NoMatchingConstructorException;
+import io.github.classgraph.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +16,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static com.github.alexgaard.hypo.DependencyId.id;
+import static com.github.alexgaard.hypo.ReflectionUtils.createProviderFromConstructor;
 
 /**
  * Resolves a set of registered dependency providers into an immutable instance of {@link Dependencies}
@@ -23,11 +25,11 @@ public class Resolver {
 
     private static final Logger log = LoggerFactory.getLogger(Resolver.class);
 
-    private final Map<String, Provider<?>> providers = new HashMap<>();
+    private final Map<DependencyId, Provider<?>> providers = new HashMap<>();
 
     private final Map<DependencyId, OnPostInit> onPostInitListeners = new HashMap<>();
 
-    private final Set<Class<?>> constructorInjectionClasses = new HashSet<>();
+    private final Set<DependencyId> constructorInjectionDependencies = new HashSet<>();
 
     /**
      * Register a dependency, with an automatically created provider that invokes the constructor of the class.
@@ -38,7 +40,21 @@ public class Resolver {
      * @return the resolver instance
      */
     public Resolver register(Class<?> clazz) {
-        constructorInjectionClasses.add(clazz);
+        constructorInjectionDependencies.add(DependencyId.of(clazz));
+        return this;
+    }
+
+    /**
+     * Register a named dependency, with an automatically created provider that invokes the constructor of the class.
+     * The provider tries to find the constructor with the most matching parameters first.
+     * If no matching constructor can be found, a {@link NoMatchingConstructorException} will be thrown when resolving the dependencies.
+     * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
+     * @param clazz class of dependency
+     * @param name name of the dependency
+     * @return the resolver instance
+     */
+    public Resolver register(Class<?> clazz, String name) {
+        constructorInjectionDependencies.add(DependencyId.of(clazz, name));
         return this;
     }
 
@@ -123,16 +139,15 @@ public class Resolver {
      * @param <T> type of dependency
      */
     public <T> Resolver register(Class<T> clazz, String name, Provider<T> provider, OnPostInit<T> onPostInit) {
-        String id = id(clazz, name);
+        DependencyId dependencyId = DependencyId.of(clazz, name);
 
-        if (providers.containsKey(id)) {
-            log.warn("Overwriting the previously registered provider for {}", id);
+        if (providers.containsKey(dependencyId)) {
+            log.warn("Overwriting the previously registered provider for {}", dependencyId);
         }
 
-        providers.put(id, provider);
+        providers.put(dependencyId, provider);
 
         if (onPostInit != null) {
-            DependencyId dependencyId = new DependencyId(clazz, name);
             onPostInitListeners.put(dependencyId, onPostInit);
         }
 
@@ -181,7 +196,20 @@ public class Resolver {
 
         onPostInitListeners.putAll(resolver.onPostInitListeners);
 
-        constructorInjectionClasses.addAll(resolver.constructorInjectionClasses);
+        constructorInjectionDependencies.addAll(resolver.constructorInjectionDependencies);
+
+        return this;
+    }
+
+    /**
+     * Scans the class path for classes annotated with {@link Dependency}
+     * and registers them with an automatically created provider that invokes the constructor of the class. See {@link #register(Class, String)}
+     * @param packagePaths the package paths that will be scanned. Ex: "com.github.alexgaard.hypo"
+     * @return the resolver instance
+     */
+    public Resolver scan(String... packagePaths) {
+        ReflectionUtils.scanForClassesWithDependencyAnnotation(packagePaths)
+                .forEach(dependency -> register(dependency.clazz, dependency.name));
 
         return this;
     }
@@ -195,11 +223,15 @@ public class Resolver {
      */
     public Dependencies resolve() {
         // Register providers for constructors
-        constructorInjectionClasses.forEach(constructorClass -> {
-            register(constructorClass, (Provider) createProviderFromConstructor(constructorClass, constructorInjectionClasses, providers));
+        constructorInjectionDependencies.forEach(dependencyId -> {
+            Provider provider = createProviderFromConstructor(dependencyId.clazz, constructorInjectionDependencies, providers);
+            register(dependencyId.clazz, dependencyId.name, provider);
         });
 
-        Dependencies dependencies = new Dependencies(Map.copyOf(providers));
+        Map<String, Provider<?>> providerCopy = new HashMap<>(providers.size());
+        providers.forEach((k, v) -> providerCopy.put(k.id(), v));
+
+        Dependencies dependencies = new Dependencies(providerCopy);
 
         dependencies.initialize();
 
@@ -212,47 +244,6 @@ public class Resolver {
         return dependencies;
     }
 
-    private static Provider<?> createProviderFromConstructor(
-            Class<?> constructorClass,
-            Set<Class<?>> availableConstructors,
-            Map<String, Provider<?>> availableProviders
-    ) {
-        Predicate<Class<?>> isParamMatching = paramType -> availableConstructors.contains(paramType) || availableProviders.containsKey(id(paramType));
-
-        List<Constructor<?>> constructors = Arrays.stream(constructorClass.getConstructors())
-                .sorted((c1, c2) -> Integer.compare(c1.getParameterCount(), c2.getParameterCount()) * -1)
-                .filter(constructor -> Arrays.stream(constructor.getParameterTypes()).allMatch(isParamMatching))
-                .collect(Collectors.toList());
-
-        if (constructors.isEmpty()) {
-            throw new NoMatchingConstructorException(constructorClass, isParamMatching);
-        }
-
-        Constructor<?> constructorToInvoke = constructors.get(0);
-
-        constructors.forEach(constructor -> {
-            boolean hasOtherConstructorWithMatchingParams = constructor != constructorToInvoke
-                    && constructor.getParameterCount() == constructorToInvoke.getParameterCount();
-
-            if (hasOtherConstructorWithMatchingParams) {
-                throw new MultipleMatchingConstructorException(constructorClass, constructorToInvoke, constructor);
-            }
-        });
-
-        return dependencies -> {
-            Object[] constructorArgs = Arrays.stream(constructorToInvoke.getParameterTypes())
-                    .map(dependencies::get)
-                    .toArray();
-
-            try {
-                return constructorToInvoke.newInstance(constructorArgs);
-            } catch (InvocationTargetException ite) {
-                throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, ite.getCause());
-            }catch (Exception exception) {
-                throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, exception);
-            }
-        };
-    }
 
     public interface OnPostInit<T> {
 

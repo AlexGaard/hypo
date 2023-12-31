@@ -4,7 +4,7 @@
 
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=hypo&metric=coverage)](https://sonarcloud.io/summary/new_code?id=hypo) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=hypo&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=hypo) [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=hypo&metric=bugs)](https://sonarcloud.io/summary/new_code?id=hypo) [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=hypo&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=hypo) [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=hypo&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=hypo)
 
-Hypo is a minimalistic dependency injection library that does not rely on reflection (opt-in), annotations or an extra processing step during compilation.
+Hypo is a minimalistic and lightweight dependency injection library that gives you full control over how and when your dependencies are loaded.
 Hypo has no side effects while resolving dependencies, which makes it very easy to test and verify that the dependency graph is resolved as expected.
 
 To be able to resolve the dependency graph, Hypo uses providers (function that instantiates a dependency).
@@ -48,6 +48,31 @@ In the example above 3 dependencies (ServiceA, ServiceB, ServiceC) are first reg
 When `resolve()` is called, the providers will be invoked in order to build up the dependency graph which in this example looks like this: `ServiceA -> ServiceB -> ServiceC`.
 
 The dependencies returned from `resolve()` can be used as a service locator to get the instantiated dependencies.
+
+### Class scanning
+Use the `Dependency` annotation to mark which classes should be registered by Hypo. 
+
+```java
+@Dependency
+class ServiceA {
+    private final ServiceB serviceB;
+    public ServiceA(ServiceB serviceB) { this.serviceB = serviceB; }
+}
+
+@Dependency
+class ServiceB {
+    private final ServiceC serviceC;
+    public ServiceB(ServiceC serviceC) { this.serviceC = serviceC; }
+}
+
+@Dependency
+class ServiceC {}
+    
+
+Dependencies dependencies = new Resolver()
+                .scan("com.example", "xyz.acme") // Register all annotated classes under these paths
+                .resolve();
+```
 
 ### Circular dependencies
 

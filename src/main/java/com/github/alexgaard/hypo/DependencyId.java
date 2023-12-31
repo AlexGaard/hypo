@@ -8,9 +8,25 @@ public class DependencyId {
 
     public final String name;
 
-    public DependencyId(Class<?> clazz, String name) {
+    private DependencyId(Class<?> clazz, String name) {
         this.clazz = clazz;
         this.name = name;
+    }
+
+    public String id() {
+        return DependencyId.id(clazz, name);
+    }
+
+    public static DependencyId of(Class<?> clazz, String name) {
+        if (name != null && name.isEmpty()) {
+            return new DependencyId(clazz, null);
+        }
+
+        return new DependencyId(clazz, name);
+    }
+
+    public static DependencyId of(Class<?> clazz) {
+        return new DependencyId(clazz, null);
     }
 
     public static String id(Class<?> clazz) {
@@ -36,4 +52,8 @@ public class DependencyId {
         return Objects.hash(clazz, name);
     }
 
+    @Override
+    public String toString() {
+        return "DependencyId{class=" + clazz + ", name='" + name + "'}";
+    }
 }

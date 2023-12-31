@@ -241,6 +241,17 @@ class ResolverTest {
         assertNotNull(dependencies.get(ServiceE.class));
     }
 
+    @Test
+    void shouldScanForClassesAnnotatedWithDependency() {
+        Dependencies dependencies = new Resolver()
+                .scan("com.github.alexgaard.hypo")
+                .register(Config.class, Config::new)
+                .resolve();
+
+        assertNotNull(dependencies.get(Config.class));
+        assertNotNull(dependencies.get(AnnotatedService.class));
+    }
+
     private void configs(Resolver resolver) {
         resolver.register(Config.class, Config::new)
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
