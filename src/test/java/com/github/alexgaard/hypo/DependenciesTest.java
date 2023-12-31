@@ -5,6 +5,7 @@ import com.github.alexgaard.hypo.exception.CircularDependencyException;
 import com.github.alexgaard.hypo.exception.MissingDependencyProviderException;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -226,6 +227,34 @@ class DependenciesTest {
         Dependencies d2 = resolver.resolve();
 
         assertNotEquals(d1.hashCode(), d2.hashCode());
+    }
+
+    @Test
+    void shouldGetAllDependenciesThatImplementsInterface() {
+        Dependencies dependencies = new Resolver()
+                .register(ServiceImpl1.class)
+                .register(ServiceImpl2.class)
+                .resolve();
+
+        List<IService> all = dependencies.getAll(IService.class);
+
+        assertEquals(2, all.size());
+        assertTrue(all.stream().anyMatch(c -> c.getClass().equals(ServiceImpl1.class)));
+        assertTrue(all.stream().anyMatch(c -> c.getClass().equals(ServiceImpl2.class)));
+    }
+
+    @Test
+    void shouldGetAllDependenciesThatExtendsClass() {
+        Dependencies dependencies = new Resolver()
+                .register(BaseServiceImpl1.class)
+                .register(BaseServiceImpl2.class)
+                .resolve();
+
+        List<BaseService> all = dependencies.getAll(BaseService.class);
+
+        assertEquals(2, all.size());
+        assertTrue(all.stream().anyMatch(c -> c.getClass().equals(BaseServiceImpl1.class)));
+        assertTrue(all.stream().anyMatch(c -> c.getClass().equals(BaseServiceImpl2.class)));
     }
 
 }

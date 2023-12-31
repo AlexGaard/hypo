@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static com.github.alexgaard.hypo.DependencyId.id;
 
@@ -41,6 +42,30 @@ public class Dependencies {
      */
     public <T> T get(Class<T> clazz) {
         return get(clazz, null);
+    }
+
+    /**
+     * Get all dependencies that is equal to, implements or extends the specified class.
+     * @param clazz class of dependency
+     * @return all matching dependencies
+     * @param <T> type of dependency
+     */
+    public <T> List<T> getAll(Class<T> clazz) {
+        Set<DependencyId> providerIds = providers
+                .keySet()
+                .stream()
+                .map(DependencyId::of)
+                .collect(Collectors.toSet());
+
+        List<T> dependencies = new ArrayList<>();
+
+        providerIds.forEach(id -> {
+            if (clazz.isAssignableFrom(id.clazz)) {
+                dependencies.add((T) get(id.clazz, id.name));
+            }
+        });
+
+        return dependencies;
     }
 
     /**

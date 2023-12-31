@@ -10,6 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.github.alexgaard.hypo.exception.ExceptionUtil.softenException;
+
 public class ReflectionUtils {
 
     private final static String DEPENDENCY_ANNOTATION_NAME = Dependency.class.getCanonicalName();
@@ -38,7 +40,7 @@ public class ReflectionUtils {
                 dependencies.add(DependencyId.of(clazz, name));
             }
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            throw softenException(e);
         }
 
         return dependencies;

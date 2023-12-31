@@ -2,6 +2,9 @@ package com.github.alexgaard.hypo;
 
 import java.util.Objects;
 
+import static com.github.alexgaard.hypo.exception.ExceptionUtil.softenException;
+import static java.lang.String.format;
+
 public class DependencyId {
 
     public final Class<?> clazz;
@@ -27,6 +30,26 @@ public class DependencyId {
 
     public static DependencyId of(Class<?> clazz) {
         return new DependencyId(clazz, null);
+    }
+
+    public static DependencyId of(String id) {
+        String[] values = id.split("@");
+
+        if (values.length != 1 && values.length != 2) {
+            throw new IllegalArgumentException(format("id '%s' is not correctly formatted", id));
+        }
+
+        try {
+            Class<?> clazz = Class.forName(values[0]);
+
+            if (values.length == 1) {
+                return DependencyId.of(clazz);
+            } else {
+                return DependencyId.of(clazz, values[1]);
+            }
+        } catch (ClassNotFoundException e) {
+            throw softenException(e);
+        }
     }
 
     public static String id(Class<?> clazz) {
