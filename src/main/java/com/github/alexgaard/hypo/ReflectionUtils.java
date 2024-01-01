@@ -14,7 +14,9 @@ import static com.github.alexgaard.hypo.exception.ExceptionUtil.softenException;
 
 public class ReflectionUtils {
 
-    private final static String DEPENDENCY_ANNOTATION_NAME = Dependency.class.getCanonicalName();
+    private static final String DEPENDENCY_ANNOTATION_NAME = Dependency.class.getCanonicalName();
+
+    private ReflectionUtils() {}
 
     public static List<DependencyId> scanForClassesWithDependencyAnnotation(String... packagePaths) {
         ClassGraph graph = new ClassGraph()

@@ -23,10 +23,10 @@ class MissingDependencyProviderExceptionTest {
 
         MissingDependencyProviderException e = new MissingDependencyProviderException(id(ServiceA.class), providers);
 
-        String expectedStr = "Unable to find a registered dependency provider for com.github.alexgaard.hypo.example.ServiceA\n" +
+        String expectedStr = "Unable to find a registered dependency provider for com.github.alexgaard.hypo.example.ServiceA.\n" +
                 "Registered providers: com.github.alexgaard.hypo.example.ServiceD@test, com.github.alexgaard.hypo.example.Config";
 
-        assertEquals(expectedStr, e.getMessage());
+        assertEquals(expectedStr, e.getMessage().replaceAll("\r\n", "\n"));
     }
 
 }

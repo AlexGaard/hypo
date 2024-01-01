@@ -2,6 +2,8 @@ package com.github.alexgaard.hypo.exception;
 
 public class ExceptionUtil {
 
+    private ExceptionUtil() {}
+
     /**
      * Uses template type erasure to trick the compiler into removing checking of exception. The compiler
      * treats E as RuntimeException, meaning that softenException doesn't need to declare it,

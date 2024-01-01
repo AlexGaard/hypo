@@ -14,7 +14,7 @@ public class MissingDependencyProviderException extends RuntimeException {
 
     private static String message(String dependencyId, Map<String, Provider<?>> providers) {
         String registeredProviders = String.join(", ", providers.keySet());
-        String str = "Unable to find a registered dependency provider for %s\nRegistered providers: %s";
+        String str = "Unable to find a registered dependency provider for %s.%nRegistered providers: %s";
         return format(str, dependencyId, registeredProviders);
     }
 

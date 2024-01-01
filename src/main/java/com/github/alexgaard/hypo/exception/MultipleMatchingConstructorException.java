@@ -14,7 +14,7 @@ public class MultipleMatchingConstructorException extends RuntimeException {
 
         return format(
                 "Found multiple constructors on %s with parameters that matches registered dependencies and same parameter count." +
-                        "\n\t\tConstructor 1: %s\n\t\tConstructor 2: %s",
+                        "%n\t\tConstructor 1: %s%n\t\tConstructor 2: %s",
                 classWithMultipleConstructors.getCanonicalName(),
                 constructor1.toGenericString(),
                 constructor2.toGenericString()

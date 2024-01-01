@@ -13,7 +13,7 @@ public class CircularDependencyException extends RuntimeException {
 
     private static String cyclicDependencyMessage(Collection<String> dependencyCycle) {
         return format(
-                "Circular dependency detected while initializing %s.\nDependency chain: %s",
+                "Circular dependency detected while initializing %s.%nDependency chain: %s",
                 getLast(dependencyCycle), dependencyChainStr(dependencyCycle)
         );
     }

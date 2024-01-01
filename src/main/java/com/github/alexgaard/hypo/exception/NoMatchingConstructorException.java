@@ -30,11 +30,11 @@ public class NoMatchingConstructorException extends RuntimeException {
 
                     return "\t* " + c + " is missing the parameters " + missingParams;
                 })
-                .collect(Collectors.joining("\n"));
+                .collect(Collectors.joining("%n"));
 
         return format(
-                "Unable to find a constructor in %s with parameters that matches registered dependencies.\n" +
-                        "Make sure that all the parameters for at least one of the constructors listed below have been registered.\n" +
+                "Unable to find a constructor in %s with parameters that matches registered dependencies.%n" +
+                        "Make sure that all the parameters for at least one of the constructors listed below have been registered.%n" +
                         "Available constructors:\n%s",
                 classWithBadConstructor.getCanonicalName(),
                 constructorsStr

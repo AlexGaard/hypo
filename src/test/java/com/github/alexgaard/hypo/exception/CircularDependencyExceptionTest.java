@@ -35,7 +35,7 @@ class CircularDependencyExceptionTest {
         String expectedMsg = "Circular dependency detected while initializing com.github.alexgaard.hypo.example.ServiceB.\n"
                 + "Dependency chain: com.github.alexgaard.hypo.example.ServiceB -> com.github.alexgaard.hypo.example.ServiceC -> com.github.alexgaard.hypo.example.ServiceA -> com.github.alexgaard.hypo.example.ServiceB";
 
-        assertEquals(exception.getMessage(), expectedMsg);
+        assertEquals(expectedMsg, exception.getMessage().replaceAll("\r\n", "\n"));
     }
 
 }

@@ -1,21 +1,17 @@
 package com.github.alexgaard.hypo;
 
-import com.github.alexgaard.hypo.exception.ConstructorInjectionFailedException;
 import com.github.alexgaard.hypo.exception.MultipleMatchingConstructorException;
 import com.github.alexgaard.hypo.exception.NoMatchingConstructorException;
-import io.github.classgraph.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-import static com.github.alexgaard.hypo.DependencyId.id;
 import static com.github.alexgaard.hypo.ReflectionUtils.createProviderFromConstructor;
 
 /**
