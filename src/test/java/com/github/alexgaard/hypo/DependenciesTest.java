@@ -249,13 +249,15 @@ class DependenciesTest {
                 .register(BaseServiceImpl1.class)
                 .register(BaseServiceImpl2.class)
                 .register(BaseServiceImpl3.class)
+                .register(BaseServiceImpl2.BaseServiceImpl2Inner.class)
                 .resolve();
 
         List<BaseService> all = dependencies.getAll(BaseService.class);
 
-        assertEquals(3, all.size());
+        assertEquals(4, all.size());
         assertTrue(all.stream().anyMatch(c -> c.getClass().equals(BaseServiceImpl1.class)));
         assertTrue(all.stream().anyMatch(c -> c.getClass().equals(BaseServiceImpl2.class)));
+        assertTrue(all.stream().anyMatch(c -> c.getClass().equals(BaseServiceImpl2.BaseServiceImpl2Inner.class)));
         assertTrue(all.stream().anyMatch(c -> c.getClass().equals(BaseServiceImpl3.class)));
     }
 
