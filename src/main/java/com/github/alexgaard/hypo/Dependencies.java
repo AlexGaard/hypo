@@ -7,9 +7,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static com.github.alexgaard.hypo.DependencyId.id;
 
 
 /**
@@ -36,9 +33,10 @@ public class Dependencies {
     /**
      * Retrieves a singleton dependency from the cache.
      * If the dependency does not exist, then it will be created once.
+     *
      * @param clazz class of dependency
+     * @param <T>   type of dependency
      * @return the requested dependency
-     * @param <T> type of dependency
      */
     public <T> T get(Class<T> clazz) {
         return get(clazz, null);
@@ -46,9 +44,10 @@ public class Dependencies {
 
     /**
      * Get all dependencies that is equal to, implements or extends the specified class.
+     *
      * @param clazz class of dependency
+     * @param <T>   type of dependency
      * @return all matching dependencies
-     * @param <T> type of dependency
      */
     public <T> List<T> getAll(Class<T> clazz) {
         Set<DependencyId> providerIds = providers
@@ -69,10 +68,11 @@ public class Dependencies {
      * Retrieves a singleton dependency from the cache.
      * The name is used to distinguish dependencies of the same class from each other.
      * If the dependency does not exist, then it will be created once.
+     *
      * @param clazz class of dependency
-     * @param name name of the dependency
+     * @param name  name of the dependency
+     * @param <T>   type of dependency
      * @return the requested dependency
-     * @param <T> type of dependency
      */
     public <T> T get(Class<T> clazz, String name) {
         DependencyId dependencyId = DependencyId.of(clazz, name);
@@ -88,9 +88,10 @@ public class Dependencies {
 
     /**
      * Create a new dependency of the requested class with a registered provider.
+     *
      * @param clazz class of dependency
+     * @param <T>   type of dependency
      * @return the requested dependency
-     * @param <T> type of dependency
      */
     public <T> T create(Class<T> clazz) {
         return create(clazz, null);
@@ -99,10 +100,11 @@ public class Dependencies {
     /**
      * Create a new dependency of the requested class with a registered provider.
      * The name is used to distinguish dependencies of the same class from each other.
+     *
      * @param clazz class of dependency
-     * @param name name of the dependency
+     * @param name  name of the dependency
+     * @param <T>   type of dependency
      * @return the requested dependency
-     * @param <T> type of dependency
      */
     public <T> T create(Class<T> clazz, String name) {
         DependencyId dependencyId = DependencyId.of(clazz, name);
@@ -128,9 +130,10 @@ public class Dependencies {
     /**
      * Retrieves a singleton dependency from the cache lazily with a supplier.
      * If the dependency does not exist, then it will be created once.
+     *
      * @param clazz class of dependency
+     * @param <T>   type of dependency
      * @return a supplier of the requested dependency
-     * @param <T> type of dependency
      */
     public <T> Supplier<T> lazyGet(Class<T> clazz) {
         return () -> get(clazz);
@@ -140,10 +143,11 @@ public class Dependencies {
      * Retrieves a singleton dependency from the cache lazily with a supplier.
      * The name is used to distinguish dependencies of the same class from each other.
      * If the dependency does not exist, then it will be created once.
+     *
      * @param clazz class of dependency
-     * @param name name of the dependency
+     * @param name  name of the dependency
+     * @param <T>   type of dependency
      * @return a supplier of the requested dependency
-     * @param <T> type of dependency
      */
     public <T> Supplier<T> lazyGet(Class<T> clazz, String name) {
         return () -> get(clazz, name);
@@ -151,9 +155,10 @@ public class Dependencies {
 
     /**
      * Retrieves a new dependency from the cache lazily with a supplier.
+     *
      * @param clazz class of dependency
+     * @param <T>   type of dependency
      * @return a supplier of the requested dependency
-     * @param <T> type of dependency
      */
     public <T> Supplier<T> lazyCreate(Class<T> clazz) {
         return () -> create(clazz);
@@ -162,10 +167,11 @@ public class Dependencies {
     /**
      * Retrieves a new dependency from the cache lazily with a supplier.
      * The name is used to distinguish dependencies of the same class from each other.
+     *
      * @param clazz class of dependency
-     * @param name name of the dependency
+     * @param name  name of the dependency
+     * @param <T>   type of dependency
      * @return a supplier of the requested dependency
-     * @param <T> type of dependency
      */
     public <T> Supplier<T> lazyCreate(Class<T> clazz, String name) {
         return () -> create(clazz, name);

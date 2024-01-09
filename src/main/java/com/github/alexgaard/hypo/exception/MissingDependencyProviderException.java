@@ -1,6 +1,5 @@
 package com.github.alexgaard.hypo.exception;
 
-import com.github.alexgaard.hypo.Dependencies;
 import com.github.alexgaard.hypo.DependencyId;
 import com.github.alexgaard.hypo.Provider;
 
