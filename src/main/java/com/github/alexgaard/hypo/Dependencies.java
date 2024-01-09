@@ -20,13 +20,13 @@ public class Dependencies {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Deque<String> initializationStack;
+    private final Deque<DependencyId> initializationStack;
 
-    private final Map<String, Object> cache;
+    private final Map<DependencyId, Object> cache;
 
-    private final Map<String, Provider<?>> providers;
+    private final Map<DependencyId, Provider<?>> providers;
 
-    Dependencies(Map<String, Provider<?>> providers) {
+    Dependencies(Map<DependencyId, Provider<?>> providers) {
         initializationStack = new ArrayDeque<>();
         cache = new HashMap<>();
 
@@ -52,10 +52,7 @@ public class Dependencies {
      */
     public <T> List<T> getAll(Class<T> clazz) {
         Set<DependencyId> providerIds = providers
-                .keySet()
-                .stream()
-                .map(DependencyId::of)
-                .collect(Collectors.toSet());
+                .keySet();
 
         List<T> dependencies = new ArrayList<>();
 
@@ -78,7 +75,7 @@ public class Dependencies {
      * @param <T> type of dependency
      */
     public <T> T get(Class<T> clazz, String name) {
-        String dependencyId = id(clazz, name);
+        DependencyId dependencyId = DependencyId.of(clazz, name);
         T dependency = (T) cache.get(dependencyId);
 
         if (dependency == null) {
@@ -108,10 +105,10 @@ public class Dependencies {
      * @param <T> type of dependency
      */
     public <T> T create(Class<T> clazz, String name) {
-        String dependencyId = id(clazz, name);
+        DependencyId dependencyId = DependencyId.of(clazz, name);
 
         if (initializationStack.contains(dependencyId)) {
-            List<String> dependencyCycle = new ArrayList<>(initializationStack);
+            List<DependencyId> dependencyCycle = new ArrayList<>(initializationStack);
             dependencyCycle.add(dependencyId);
 
             throw new CircularDependencyException(dependencyCycle);
@@ -200,7 +197,7 @@ public class Dependencies {
         log.debug("Created dependencies after initialization {}", cache);
     }
 
-    private Provider<?> getProvider(String id) {
+    private Provider<?> getProvider(DependencyId id) {
         Provider<?> provider = providers.get(id);
 
         if (provider == null) {
@@ -208,6 +205,10 @@ public class Dependencies {
         }
 
         return provider;
+    }
+
+    Map<DependencyId, Provider<?>> getProviders() {
+        return providers;
     }
 
 }

@@ -16,7 +16,8 @@ public class ReflectionUtils {
 
     private static final String DEPENDENCY_ANNOTATION_NAME = Dependency.class.getCanonicalName();
 
-    private ReflectionUtils() {}
+    private ReflectionUtils() {
+    }
 
     public static List<DependencyId> scanForClassesWithDependencyAnnotation(String... packagePaths) {
         ClassGraph graph = new ClassGraph()
@@ -48,13 +49,38 @@ public class ReflectionUtils {
         return dependencies;
     }
 
-    public static Provider<?> createProviderFromConstructor(
-            Class<?> constructorClass,
-            Set<DependencyId> availableDependencies,
-            Map<DependencyId, Provider<?>> availableProviders
-    ) {
-        Set<Class<?>> availableClasses = availableDependencies.stream().map(d -> d.clazz).collect(Collectors.toSet());
-        availableClasses.addAll(availableProviders.keySet().stream().map(d -> d.clazz).collect(Collectors.toSet()));
+    public static <T> Provider<T> createProviderFromConstructor(Class<T> constructorClass) {
+        return new Provider<>() {
+            private Constructor<?> constructorToInvoke;
+
+            @Override
+            public T provide(Dependencies dependencies) {
+                synchronized (this) {
+                    if (constructorToInvoke == null) {
+                        constructorToInvoke = findAvailableConstructor(dependencies, constructorClass);
+                    }
+                }
+
+                Object[] constructorArgs = Arrays.stream(constructorToInvoke.getParameterTypes())
+                        .map(dependencies::get)
+                        .toArray();
+
+                try {
+                    return (T) constructorToInvoke.newInstance(constructorArgs);
+                } catch (InvocationTargetException ite) {
+                    throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, ite.getCause());
+                } catch (Exception exception) {
+                    throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, exception);
+                }
+            }
+        };
+    }
+
+    private static Constructor<?> findAvailableConstructor(Dependencies dependencies, Class<?> constructorClass) {
+        List<Class<?>> availableClasses = dependencies.getProviders()
+                .keySet()
+                .stream()
+                .map(p -> p.clazz).collect(Collectors.toList());
 
         List<Constructor<?>> constructors = Arrays.stream(constructorClass.getConstructors())
                 .sorted((c1, c2) -> Integer.compare(c1.getParameterCount(), c2.getParameterCount()) * -1)
@@ -76,19 +102,7 @@ public class ReflectionUtils {
             }
         });
 
-        return dependencies -> {
-            Object[] constructorArgs = Arrays.stream(constructorToInvoke.getParameterTypes())
-                    .map(dependencies::get)
-                    .toArray();
-
-            try {
-                return constructorToInvoke.newInstance(constructorArgs);
-            } catch (InvocationTargetException ite) {
-                throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, ite.getCause());
-            }catch (Exception exception) {
-                throw new ConstructorInjectionFailedException(constructorClass, constructorToInvoke, exception);
-            }
-        };
+        return constructorToInvoke;
     }
 
 }

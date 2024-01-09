@@ -77,6 +77,6 @@ public class DependencyId {
 
     @Override
     public String toString() {
-        return "DependencyId{class=" + clazz + ", name='" + name + "'}";
+        return id();
     }
 }

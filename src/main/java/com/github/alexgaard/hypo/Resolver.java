@@ -6,9 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -25,18 +23,17 @@ public class Resolver {
 
     private final Map<DependencyId, OnPostInit> onPostInitListeners = new HashMap<>();
 
-    private final Set<DependencyId> constructorInjectionDependencies = new HashSet<>();
-
     /**
      * Register a dependency, with an automatically created provider that invokes the constructor of the class.
      * The provider tries to find the constructor with the most matching parameters first.
      * If no matching constructor can be found, a {@link NoMatchingConstructorException} will be thrown when resolving the dependencies.
      * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
      * @param clazz class of dependency
+     * @param <T> type of dependency
      * @return the resolver instance
      */
-    public Resolver register(Class<?> clazz) {
-        constructorInjectionDependencies.add(DependencyId.of(clazz));
+    public <T> Resolver register(Class<T> clazz) {
+        register(clazz, createProviderFromConstructor(clazz));
         return this;
     }
 
@@ -47,10 +44,11 @@ public class Resolver {
      * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
      * @param clazz class of dependency
      * @param name name of the dependency
+     * @param <T> type of dependency
      * @return the resolver instance
      */
-    public Resolver register(Class<?> clazz, String name) {
-        constructorInjectionDependencies.add(DependencyId.of(clazz, name));
+    public <T> Resolver register(Class<T> clazz, String name) {
+        register(clazz, name, createProviderFromConstructor(clazz));
         return this;
     }
 
@@ -192,8 +190,6 @@ public class Resolver {
 
         onPostInitListeners.putAll(resolver.onPostInitListeners);
 
-        constructorInjectionDependencies.addAll(resolver.constructorInjectionDependencies);
-
         return this;
     }
 
@@ -218,14 +214,8 @@ public class Resolver {
      * @return a new set of dependencies
      */
     public Dependencies resolve() {
-        // Register providers for constructors
-        constructorInjectionDependencies.forEach(dependencyId -> {
-            Provider provider = createProviderFromConstructor(dependencyId.clazz, constructorInjectionDependencies, providers);
-            register(dependencyId.clazz, dependencyId.name, provider);
-        });
-
-        Map<String, Provider<?>> providerCopy = new HashMap<>(providers.size());
-        providers.forEach((k, v) -> providerCopy.put(k.id(), v));
+        Map<DependencyId, Provider<?>> providerCopy = new HashMap<>(providers.size());
+        providerCopy.putAll(providers);
 
         Dependencies dependencies = new Dependencies(providerCopy);
 
@@ -238,13 +228,6 @@ public class Resolver {
         );
 
         return dependencies;
-    }
-
-
-    public interface OnPostInit<T> {
-
-        void onPostInit(Dependencies dependencies, T dependency);
-
     }
 
 }
