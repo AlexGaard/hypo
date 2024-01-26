@@ -28,12 +28,12 @@ public class Resolver {
      * The provider tries to find the constructor with the most matching parameters first.
      * If no matching constructor can be found, a {@link NoMatchingConstructorException} will be thrown when resolving the dependencies.
      * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param <T> type of dependency
      * @return the resolver instance
      */
-    public <T> Resolver register(Class<T> clazz) {
-        register(clazz, createProviderFromConstructor(clazz));
+    public <T> Resolver register(Class<T> dependencyClass) {
+        register(dependencyClass, createProviderFromConstructor(dependencyClass));
         return this;
     }
 
@@ -42,98 +42,98 @@ public class Resolver {
      * The provider tries to find the constructor with the most matching parameters first.
      * If no matching constructor can be found, a {@link NoMatchingConstructorException} will be thrown when resolving the dependencies.
      * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param name name of the dependency
      * @param <T> type of dependency
      * @return the resolver instance
      */
-    public <T> Resolver register(Class<T> clazz, String name) {
-        register(clazz, name, createProviderFromConstructor(clazz));
+    public <T> Resolver register(Class<T> dependencyClass, String name) {
+        register(dependencyClass, name, createProviderFromConstructor(dependencyClass));
         return this;
     }
 
     /**
      * Register a dependency provider for the specified dependency.
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param provider provider for the dependency
      * @return the resolver instance
      * @param <T> type of dependency
      */
-    public <T> Resolver register(Class<T> clazz, Provider<T> provider) {
-        return register(clazz, null, provider, null);
+    public <T> Resolver register(Class<T> dependencyClass, Provider<T> provider) {
+        return register(dependencyClass, null, provider, null);
     }
 
     /**
      * Register a dependency provider for the specified dependency.
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param provider provider for the dependency
      * @return the resolver instance
      * @param <T> type of dependency
      */
-    public <T> Resolver register(Class<T> clazz, Supplier<T> provider) {
-        return register(clazz, ignored -> provider.get());
+    public <T> Resolver register(Class<T> dependencyClass, Supplier<T> provider) {
+        return register(dependencyClass, ignored -> provider.get());
     }
 
     /**
      * Register a dependency provider for the specified dependency.
-     * @param clazz class of dependency
-     * @param provider provider for the dependency
-     * @param onPostInit callback which is triggered after the initialization of dependencies
-     * @return the resolver instance
-     * @param <T> type of dependency
-     */
-    public <T> Resolver register(Class<T> clazz, Provider<T> provider, OnPostInit<T> onPostInit) {
-        return register(clazz, null, provider, onPostInit);
-    }
-
-    /**
-     * Register a dependency provider for the specified dependency.
-     * @param clazz class of dependency
-     * @param name name of the dependency
-     * @param provider provider for the dependency
-     * @return the resolver instance
-     * @param <T> type of dependency
-     */
-    public <T> Resolver register(Class<T> clazz, String name, Provider<T> provider) {
-        return register(clazz, name, provider, null);
-    }
-
-    /**
-     * Register a dependency provider for the specified dependency.
-     * @param clazz class of dependency
-     * @param name name of the dependency
-     * @param provider provider for the dependency
-     * @return the resolver instance
-     * @param <T> type of dependency
-     */
-    public <T> Resolver register(Class<T> clazz, String name, Supplier<T> provider) {
-        return register(clazz, name, ignored -> provider.get(), null);
-    }
-
-    /**
-     * Register a dependency provider for the specified dependency.
-     * @param clazz class of dependency
-     * @param name name of the dependency
+     * @param dependencyClass class of dependency
      * @param provider provider for the dependency
      * @param onPostInit callback which is triggered after the initialization of dependencies
      * @return the resolver instance
      * @param <T> type of dependency
      */
-    public <T> Resolver register(Class<T> clazz, String name, Supplier<T> provider, OnPostInit<T> onPostInit) {
-        return register(clazz, name, ignored -> provider.get(), onPostInit);
+    public <T> Resolver register(Class<T> dependencyClass, Provider<T> provider, OnPostInit<T> onPostInit) {
+        return register(dependencyClass, null, provider, onPostInit);
     }
 
     /**
      * Register a dependency provider for the specified dependency.
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
+     * @param name name of the dependency
+     * @param provider provider for the dependency
+     * @return the resolver instance
+     * @param <T> type of dependency
+     */
+    public <T> Resolver register(Class<T> dependencyClass, String name, Provider<T> provider) {
+        return register(dependencyClass, name, provider, null);
+    }
+
+    /**
+     * Register a dependency provider for the specified dependency.
+     * @param dependencyClass class of dependency
+     * @param name name of the dependency
+     * @param provider provider for the dependency
+     * @return the resolver instance
+     * @param <T> type of dependency
+     */
+    public <T> Resolver register(Class<T> dependencyClass, String name, Supplier<T> provider) {
+        return register(dependencyClass, name, ignored -> provider.get(), null);
+    }
+
+    /**
+     * Register a dependency provider for the specified dependency.
+     * @param dependencyClass class of dependency
      * @param name name of the dependency
      * @param provider provider for the dependency
      * @param onPostInit callback which is triggered after the initialization of dependencies
      * @return the resolver instance
      * @param <T> type of dependency
      */
-    public <T> Resolver register(Class<T> clazz, String name, Provider<T> provider, OnPostInit<T> onPostInit) {
-        DependencyId dependencyId = DependencyId.of(clazz, name);
+    public <T> Resolver register(Class<T> dependencyClass, String name, Supplier<T> provider, OnPostInit<T> onPostInit) {
+        return register(dependencyClass, name, ignored -> provider.get(), onPostInit);
+    }
+
+    /**
+     * Register a dependency provider for the specified dependency.
+     * @param dependencyClass class of dependency
+     * @param name name of the dependency
+     * @param provider provider for the dependency
+     * @param onPostInit callback which is triggered after the initialization of dependencies
+     * @return the resolver instance
+     * @param <T> type of dependency
+     */
+    public <T> Resolver register(Class<T> dependencyClass, String name, Provider<T> provider, OnPostInit<T> onPostInit) {
+        DependencyId dependencyId = DependencyId.of(dependencyClass, name);
 
         if (providers.containsKey(dependencyId)) {
             log.warn("Overwriting the previously registered provider for {}", dependencyId);

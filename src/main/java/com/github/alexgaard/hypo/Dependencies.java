@@ -34,29 +34,29 @@ public class Dependencies {
      * Retrieves a singleton dependency from the cache.
      * If the dependency does not exist, then it will be created once.
      *
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param <T>   type of dependency
      * @return the requested dependency
      */
-    public <T> T get(Class<T> clazz) {
-        return get(clazz, null);
+    public <T> T get(Class<T> dependencyClass) {
+        return get(dependencyClass, null);
     }
 
     /**
      * Get all dependencies that is equal to, implements or extends the specified class.
      *
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param <T>   type of dependency
      * @return all matching dependencies
      */
-    public <T> List<T> getAll(Class<T> clazz) {
+    public <T> List<T> getAll(Class<T> dependencyClass) {
         Set<DependencyId> providerIds = providers
                 .keySet();
 
         List<T> dependencies = new ArrayList<>();
 
         providerIds.forEach(id -> {
-            if (clazz.isAssignableFrom(id.clazz)) {
+            if (dependencyClass.isAssignableFrom(id.clazz)) {
                 dependencies.add((T) get(id.clazz, id.name));
             }
         });
@@ -69,17 +69,17 @@ public class Dependencies {
      * The name is used to distinguish dependencies of the same class from each other.
      * If the dependency does not exist, then it will be created once.
      *
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param name  name of the dependency
      * @param <T>   type of dependency
      * @return the requested dependency
      */
-    public <T> T get(Class<T> clazz, String name) {
-        DependencyId dependencyId = DependencyId.of(clazz, name);
+    public <T> T get(Class<T> dependencyClass, String name) {
+        DependencyId dependencyId = DependencyId.of(dependencyClass, name);
         T dependency = (T) cache.get(dependencyId);
 
         if (dependency == null) {
-            dependency = create(clazz, name);
+            dependency = create(dependencyClass, name);
             cache.put(dependencyId, dependency);
         }
 
@@ -89,25 +89,25 @@ public class Dependencies {
     /**
      * Create a new dependency of the requested class with a registered provider.
      *
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param <T>   type of dependency
      * @return the requested dependency
      */
-    public <T> T create(Class<T> clazz) {
-        return create(clazz, null);
+    public <T> T create(Class<T> dependencyClass) {
+        return create(dependencyClass, null);
     }
 
     /**
      * Create a new dependency of the requested class with a registered provider.
      * The name is used to distinguish dependencies of the same class from each other.
      *
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param name  name of the dependency
      * @param <T>   type of dependency
      * @return the requested dependency
      */
-    public <T> T create(Class<T> clazz, String name) {
-        DependencyId dependencyId = DependencyId.of(clazz, name);
+    public <T> T create(Class<T> dependencyClass, String name) {
+        DependencyId dependencyId = DependencyId.of(dependencyClass, name);
 
         if (initializationStack.contains(dependencyId)) {
             List<DependencyId> dependencyCycle = new ArrayList<>(initializationStack);
@@ -131,12 +131,12 @@ public class Dependencies {
      * Retrieves a singleton dependency from the cache lazily with a supplier.
      * If the dependency does not exist, then it will be created once.
      *
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param <T>   type of dependency
      * @return a supplier of the requested dependency
      */
-    public <T> Supplier<T> lazyGet(Class<T> clazz) {
-        return () -> get(clazz);
+    public <T> Supplier<T> lazyGet(Class<T> dependencyClass) {
+        return () -> get(dependencyClass);
     }
 
     /**
@@ -144,37 +144,50 @@ public class Dependencies {
      * The name is used to distinguish dependencies of the same class from each other.
      * If the dependency does not exist, then it will be created once.
      *
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param name  name of the dependency
      * @param <T>   type of dependency
      * @return a supplier of the requested dependency
      */
-    public <T> Supplier<T> lazyGet(Class<T> clazz, String name) {
-        return () -> get(clazz, name);
+    public <T> Supplier<T> lazyGet(Class<T> dependencyClass, String name) {
+        return () -> get(dependencyClass, name);
     }
 
     /**
      * Retrieves a new dependency from the cache lazily with a supplier.
      *
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param <T>   type of dependency
      * @return a supplier of the requested dependency
      */
-    public <T> Supplier<T> lazyCreate(Class<T> clazz) {
-        return () -> create(clazz);
+    public <T> Supplier<T> lazyCreate(Class<T> dependencyClass) {
+        return () -> create(dependencyClass);
     }
 
     /**
      * Retrieves a new dependency from the cache lazily with a supplier.
      * The name is used to distinguish dependencies of the same class from each other.
      *
-     * @param clazz class of dependency
+     * @param dependencyClass class of dependency
      * @param name  name of the dependency
      * @param <T>   type of dependency
      * @return a supplier of the requested dependency
      */
-    public <T> Supplier<T> lazyCreate(Class<T> clazz, String name) {
-        return () -> create(clazz, name);
+    public <T> Supplier<T> lazyCreate(Class<T> dependencyClass, String name) {
+        return () -> create(dependencyClass, name);
+    }
+
+    void initialize() {
+        log.debug("Initializing dependencies with registered providers {}", providers);
+
+        providers.forEach((dependencyClass, provider) -> {
+            if (!cache.containsKey(dependencyClass)) {
+                Object dependency = provider.provide(this);
+                cache.put(dependencyClass, dependency);
+            }
+        });
+
+        log.debug("Created dependencies after initialization {}", cache);
     }
 
     @Override
@@ -188,19 +201,6 @@ public class Dependencies {
     @Override
     public int hashCode() {
         return Objects.hash(cache, providers);
-    }
-
-    void initialize() {
-        log.debug("Initializing dependencies with registered providers {}", providers);
-
-        providers.forEach((clazz, provider) -> {
-            if (!cache.containsKey(clazz)) {
-                Object dependency = provider.provide(this);
-                cache.put(clazz, dependency);
-            }
-        });
-
-        log.debug("Created dependencies after initialization {}", cache);
     }
 
     private Provider<?> getProvider(DependencyId id) {
