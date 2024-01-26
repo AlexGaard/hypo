@@ -24,7 +24,7 @@ public class Resolver {
     private final Map<DependencyId, OnPostInit> onPostInitListeners = new HashMap<>();
 
     /**
-     * Register a dependency, with an automatically created provider that invokes the constructor of the class.
+     * Register a dependency with an automatically created provider that invokes the constructor of the class.
      * The provider tries to find the constructor with the most matching parameters first.
      * If no matching constructor can be found, a {@link NoMatchingConstructorException} will be thrown when resolving the dependencies.
      * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
@@ -38,7 +38,7 @@ public class Resolver {
     }
 
     /**
-     * Register a named dependency, with an automatically created provider that invokes the constructor of the class.
+     * Register a named dependency with an automatically created provider that invokes the constructor of the class.
      * The provider tries to find the constructor with the most matching parameters first.
      * If no matching constructor can be found, a {@link NoMatchingConstructorException} will be thrown when resolving the dependencies.
      * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
@@ -49,6 +49,39 @@ public class Resolver {
      */
     public <T> Resolver register(Class<T> dependencyClass, String name) {
         register(dependencyClass, name, createProviderFromConstructor(dependencyClass));
+        return this;
+    }
+
+    /**
+     * Register a dependency with a class that it extends or implements from.
+     * The dependency is created from an automatically created provider that invokes the constructor of the class.
+     * The provider tries to find the constructor with the most matching parameters first.
+     * If no matching constructor can be found, a {@link NoMatchingConstructorException} will be thrown when resolving the dependencies.
+     * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
+     * @param superOrInterfaceClass class which dependency extends or implements
+     * @param dependencyClass class of dependency
+     * @param <T> type of dependency
+     * @return the resolver instance
+     */
+    public <S, T extends S> Resolver register(Class<S> superOrInterfaceClass, Class<T> dependencyClass) {
+        register(superOrInterfaceClass, (Provider<S>) createProviderFromConstructor(dependencyClass));
+        return this;
+    }
+
+    /**
+     * Register a named dependency with a class that it extends or implements from.
+     * The dependency is created from an automatically created provider that invokes the constructor of the class.
+     * The provider tries to find the constructor with the most matching parameters first.
+     * If no matching constructor can be found, a {@link NoMatchingConstructorException} will be thrown when resolving the dependencies.
+     * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
+     * @param superOrInterfaceClass class which dependency extends or implements
+     * @param dependencyClass class of dependency
+     * @param name name of the dependency
+     * @param <T> type of dependency
+     * @return the resolver instance
+     */
+    public <S, T extends S> Resolver register(Class<S> superOrInterfaceClass, Class<T> dependencyClass, String name) {
+        register(superOrInterfaceClass, name, (Provider<S>) createProviderFromConstructor(dependencyClass));
         return this;
     }
 

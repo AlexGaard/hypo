@@ -252,6 +252,42 @@ class ResolverTest {
         assertNotNull(dependencies.get(AnnotatedService.class));
     }
 
+    @Test
+    void shouldRegisterAndBindToSuperClass() {
+        Dependencies dependencies = new Resolver()
+                .register(BaseService.class, BaseServiceImpl1.class)
+                .resolve();
+
+        assertNotNull(dependencies.get(BaseService.class));
+    }
+
+    @Test
+    void shouldRegisterNamedDependencyAndBindToSuperClass() {
+        Dependencies dependencies = new Resolver()
+                .register(BaseService.class, BaseServiceImpl1.class, "test")
+                .resolve();
+
+        assertNotNull(dependencies.get(BaseService.class, "test"));
+    }
+
+    @Test
+    void shouldRegisterAndBindToInterface() {
+        Dependencies dependencies = new Resolver()
+                .register(IService.class, ServiceImpl1.class)
+                .resolve();
+
+        assertNotNull(dependencies.get(IService.class));
+    }
+
+    @Test
+    void shouldRegisterAndBindToSuperSuperClass() {
+        Dependencies dependencies = new Resolver()
+                .register(BaseService.class, BaseServiceImpl2.class)
+                .resolve();
+
+        assertNotNull(dependencies.get(BaseService.class));
+    }
+
     private void configs(Resolver resolver) {
         resolver.register(Config.class, Config::new)
                 .register(ServiceE.class, (d) -> new ServiceE(d.get(Config.class)));
