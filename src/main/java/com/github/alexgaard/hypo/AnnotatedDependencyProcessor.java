@@ -18,13 +18,13 @@ import static java.lang.String.format;
 @AutoService(Processor.class)
 public class AnnotatedDependencyProcessor extends AbstractProcessor {
 
-    public final static String GENERATED_MODULE_PACKAGE = "com.github.alexgaard.hypo.generated";
+    public static final String GENERATED_MODULE_PACKAGE = "com.github.alexgaard.hypo.generated";
 
-    public final static String DEPENDENCY_MODULE_CLASS_NAME = "DependencyModule";
+    public static final String DEPENDENCY_MODULE_CLASS_NAME = "DependencyModule";
 
-    public final static String DEPENDENCY_MODULE_REGISTER_FUNCTION_NAME = "registerModule";
+    public static final String DEPENDENCY_MODULE_REGISTER_FUNCTION_NAME = "registerModule";
 
-    public final static String DEPENDENCY_MODULE_FULL_NAME = GENERATED_MODULE_PACKAGE + "." + DEPENDENCY_MODULE_CLASS_NAME;
+    public static final String DEPENDENCY_MODULE_FULL_NAME = GENERATED_MODULE_PACKAGE + "." + DEPENDENCY_MODULE_CLASS_NAME;
 
 
     @Override
