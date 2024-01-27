@@ -1,15 +1,19 @@
 package com.github.alexgaard.hypo;
 
+import com.github.alexgaard.hypo.exception.AnnotationProcessorException;
 import com.github.alexgaard.hypo.exception.MultipleMatchingConstructorException;
 import com.github.alexgaard.hypo.exception.NoMatchingConstructorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static com.github.alexgaard.hypo.AnnotatedDependencyProcessor.DEPENDENCY_MODULE_FULL_NAME;
+import static com.github.alexgaard.hypo.AnnotatedDependencyProcessor.DEPENDENCY_MODULE_REGISTER_FUNCTION_NAME;
 import static com.github.alexgaard.hypo.ReflectionUtils.createProviderFromConstructor;
 
 /**
@@ -60,6 +64,7 @@ public class Resolver {
      * If multiple matching constructors are found, a {@link MultipleMatchingConstructorException} will be thrown when resolving the dependencies.
      * @param superOrInterfaceClass class which dependency extends or implements
      * @param dependencyClass class of dependency
+     * @param <S> super class that dependency extends or interface that dependency implements
      * @param <T> type of dependency
      * @return the resolver instance
      */
@@ -77,6 +82,7 @@ public class Resolver {
      * @param superOrInterfaceClass class which dependency extends or implements
      * @param dependencyClass class of dependency
      * @param name name of the dependency
+     * @param <S> super class that dependency extends or interface that dependency implements
      * @param <T> type of dependency
      * @return the resolver instance
      */
@@ -227,14 +233,22 @@ public class Resolver {
     }
 
     /**
-     * Scans the class path for classes annotated with {@link Dependency}
-     * and registers them with an automatically created provider that invokes the constructor of the class. See {@link #register(Class, String)}
-     * @param packagePaths the package paths that will be scanned. Ex: "com.github.alexgaard.hypo"
+     * Register all dependencies annotated with {@link Dependency}.
+     * This function relies on the annotation processor {@link AnnotatedDependencyProcessor} to work correctly.
+     * This is usually configured in your pom.xml or build.gradle/build.gradle.kts file.
+     * The dependencies are automatically created with a provider that invokes the constructor.
      * @return the resolver instance
      */
-    public Resolver scan(String... packagePaths) {
-        ReflectionUtils.scanForClassesWithDependencyAnnotation(packagePaths)
-                .forEach(dependency -> register(dependency.clazz, dependency.name));
+    public Resolver registerAnnotatedDependencies() {
+        try {
+            Class<?> clazz = Class.forName(DEPENDENCY_MODULE_FULL_NAME);
+            Method method = clazz.getDeclaredMethod(DEPENDENCY_MODULE_REGISTER_FUNCTION_NAME, Resolver.class);
+            method.invoke(null, this);
+        } catch (ClassNotFoundException e) {
+            throw new AnnotationProcessorException();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to register generated dependency module", e);
+        }
 
         return this;
     }

@@ -49,8 +49,15 @@ When `resolve()` is called, the providers will be invoked in order to build up t
 
 The dependencies returned from `resolve()` can be used as a service locator to get the instantiated dependencies.
 
-### Class scanning
-Use the `Dependency` annotation to mark which classes should be registered by Hypo. 
+### Annotated dependencies
+Use the `Dependency` annotation to mark which classes should be registered by Hypo. At build time Hypo will use an annotation processor to generate a class 
+that will register the dependencies without having to scan the class path at runtime.
+
+To set up the annotation processor for Gradle: add `annotationProcessor "com.github.alexgaard:hypo:VERSION"` to your `build.gradle` 
+or `annotationProcessor("com.github.alexgaard:hypo:VERSION")` to your `build.gradle.kts`.
+
+To set up the annotation processor for Maven: configure `org.apache.maven.plugins:maven-compiler-plugin`. 
+This is only required if you have opted out of Maven automatically registering the annotation processor.
 
 ```java
 @Dependency
@@ -70,7 +77,7 @@ class ServiceC {}
     
 
 Dependencies dependencies = new Resolver()
-                .scan("com.example", "xyz.acme") // Register all annotated classes under these paths
+                .registerAnnotatedDependencies()
                 .resolve();
 ```
 
@@ -145,14 +152,14 @@ Maven:
 Gradle:
 ```kotlin
 dependencies {
-	implementation("com.github.AlexGaard:hypo:LATEST_RELEASE")
+	implementation("com.github.alexgaard:hypo:LATEST_RELEASE")
 }
 ```
 
 Maven:
 ```xml
 <dependency>
-    <groupId>com.github.AlexGaard</groupId>
+    <groupId>com.github.alexgaard</groupId>
     <artifactId>hypo</artifactId>
     <version>LATEST_RELEASE</version>
 </dependency>
