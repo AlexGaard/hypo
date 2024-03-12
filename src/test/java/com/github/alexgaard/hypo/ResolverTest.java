@@ -25,28 +25,13 @@ class ResolverTest {
     }
 
     @Test
-    void shouldResolveWithConstructorInjectionLessParameters() {
-        Resolver resolver = new Resolver()
-                .register(ServiceD.class, ServiceDImpl::new)
-                .register(ServiceF.class);
-
-        Dependencies dependencies = resolver.resolve();
-
-        assertNotNull(dependencies.get(ServiceD.class));
-        assertThrows(MissingDependencyProviderException.class, () -> dependencies.get(Config.class));
-        assertNotNull(dependencies.get(ServiceF.class));
-    }
-
-    @Test
     void shouldResolveWithConstructorInjectionNoParameters() {
         Resolver resolver = new Resolver()
-                .register(ServiceF.class);
+                .register(ClassWithNoConstructor.class);
 
         Dependencies dependencies = resolver.resolve();
 
-        assertThrows(MissingDependencyProviderException.class, () -> dependencies.get(ServiceD.class));
-        assertThrows(MissingDependencyProviderException.class, () -> dependencies.get(Config.class));
-        assertNotNull(dependencies.get(ServiceF.class));
+        assertNotNull(dependencies.get(ClassWithNoConstructor.class));
     }
 
     @Test
@@ -54,17 +39,7 @@ class ResolverTest {
         Resolver resolver = new Resolver()
                 .register(ServiceA.class);
 
-        assertThrows(NoMatchingConstructorException.class, resolver::resolve);
-    }
-
-    @Test
-    void shouldThrowWhenMultipleMatchingConstructorsAreAvailable() {
-        Resolver resolver = new Resolver()
-                .register(ServiceG.class)
-                .register(Config.class, Config::new)
-                .register(ServiceD.class, ServiceDImpl::new);
-
-        assertThrows(MultipleMatchingConstructorException.class, resolver::resolve);
+        assertThrows(InvalidConstructorException.class, resolver::resolve);
     }
 
     @Test
@@ -72,7 +47,7 @@ class ResolverTest {
         Resolver resolver = new Resolver()
                 .register(ServiceD.class);
 
-        assertThrows(NoMatchingConstructorException.class, resolver::resolve);
+        assertThrows(NoPublicConstructorException.class, resolver::resolve);
     }
 
     @Test

@@ -1,8 +1,7 @@
 package com.github.alexgaard.hypo;
 
-import com.github.alexgaard.hypo.exception.ConstructorInjectionFailedException;
-import com.github.alexgaard.hypo.exception.MultipleMatchingConstructorException;
-import com.github.alexgaard.hypo.exception.NoMatchingConstructorException;
+import com.github.alexgaard.hypo.annotation.InjectInto;
+import com.github.alexgaard.hypo.exception.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -21,12 +20,18 @@ public class ReflectionUtils {
             public T provide(Dependencies dependencies) {
                 synchronized (this) {
                     if (constructorToInvoke == null) {
-                        constructorToInvoke = findAvailableConstructor(dependencies, constructorClass);
+                        constructorToInvoke = findAvailableConstructor(constructorClass);
                     }
                 }
 
                 Object[] constructorArgs = Arrays.stream(constructorToInvoke.getParameterTypes())
-                        .map(dependencies::get)
+                        .map(param -> {
+                            try {
+                                return dependencies.get(param);
+                            } catch (MissingDependencyProviderException e) {
+                                throw new InvalidConstructorException(constructorToInvoke, param);
+                            }
+                        })
                         .toArray();
 
                 try {
@@ -40,31 +45,28 @@ public class ReflectionUtils {
         };
     }
 
-    private static Constructor<?> findAvailableConstructor(Dependencies dependencies, Class<?> constructorClass) {
-        List<Class<?>> availableClasses = dependencies.getProviders()
-                .keySet()
-                .stream()
-                .map(p -> p.clazz).collect(Collectors.toList());
+    private static Constructor<?> findAvailableConstructor(Class<?> constructorClass) {
+        Constructor<?>[] constructors = constructorClass.getConstructors();
 
-        List<Constructor<?>> constructors = Arrays.stream(constructorClass.getConstructors())
-                .sorted((c1, c2) -> Integer.compare(c1.getParameterCount(), c2.getParameterCount()) * -1)
-                .filter(constructor -> Arrays.stream(constructor.getParameterTypes()).allMatch(availableClasses::contains))
-                .collect(Collectors.toList());
+        Constructor<?> constructorToInvoke;
 
-        if (constructors.isEmpty()) {
-            throw new NoMatchingConstructorException(constructorClass, availableClasses::contains);
-        }
+        if (constructors.length == 0) {
+            throw new NoPublicConstructorException(constructorClass);
+        } else if (constructors.length == 1) {
+            constructorToInvoke = constructors[0];
+        } else {
+            List<Constructor<?>> annotatedConstructors = Arrays.stream(constructors)
+                    .filter(constructor -> constructor.getAnnotation(InjectInto.class) != null)
+                    .collect(Collectors.toList());
 
-        Constructor<?> constructorToInvoke = constructors.get(0);
-
-        constructors.forEach(constructor -> {
-            boolean hasOtherConstructorWithMatchingParams = constructor != constructorToInvoke
-                    && constructor.getParameterCount() == constructorToInvoke.getParameterCount();
-
-            if (hasOtherConstructorWithMatchingParams) {
-                throw new MultipleMatchingConstructorException(constructorClass, constructorToInvoke, constructor);
+            if (annotatedConstructors.isEmpty()) {
+                throw new MultipleConstructorsException(constructorClass);
+            } else if (annotatedConstructors.size() == 1) {
+                constructorToInvoke = annotatedConstructors.get(0);
+            } else {
+                throw new MultipleAnnotatedConstructorsException(constructorClass);
             }
-        });
+        }
 
         return constructorToInvoke;
     }

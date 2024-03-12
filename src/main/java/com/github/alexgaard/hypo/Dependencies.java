@@ -2,9 +2,12 @@ package com.github.alexgaard.hypo;
 
 import com.github.alexgaard.hypo.exception.CircularDependencyException;
 import com.github.alexgaard.hypo.exception.MissingDependencyProviderException;
+import jakarta.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -84,6 +87,27 @@ public class Dependencies {
         }
 
         return dependency;
+    }
+
+    /**
+     * Retrieves a dependency from the cache.
+     * @param dependencyClass class of dependency
+     * @return The dependency or null if the dependency does not exist
+     * @param <T> type of dependency
+     */
+    public <T> @Nullable T find(Class<T> dependencyClass) {
+        return (T) cache.get(DependencyId.of(dependencyClass));
+    }
+
+    /**
+     * Retrieves a dependency from the cache.
+     * @param dependencyClass class of dependency
+     * @param name  name of the dependency
+     * @return The dependency or null if the dependency does not exist
+     * @param <T> type of dependency
+     */
+    public <T> @Nullable T find(Class<T> dependencyClass, String name) {
+        return (T) cache.get(DependencyId.of(dependencyClass, name));
     }
 
     /**
@@ -211,10 +235,6 @@ public class Dependencies {
         }
 
         return provider;
-    }
-
-    Map<DependencyId, Provider<?>> getProviders() {
-        return providers;
     }
 
 }

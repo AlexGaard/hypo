@@ -1,5 +1,6 @@
 val sl4jVersion = "2.0.7"
 val junitVersion = "5.9.2"
+val autoServiceVersion = "1.1.1"
 
 plugins {
 	jacoco
@@ -25,8 +26,9 @@ sonarqube {
 
 dependencies {
 	implementation("org.slf4j:slf4j-api:$sl4jVersion")
-	implementation("com.google.auto.service:auto-service:1.1.1")
-	annotationProcessor("com.google.auto.service:auto-service:1.1.1")
+	implementation("jakarta.annotation:jakarta.annotation-api:3.0.0-M1")
+	implementation("com.google.auto.service:auto-service:$autoServiceVersion")
+	annotationProcessor("com.google.auto.service:auto-service:$autoServiceVersion")
 
 	testImplementation("org.slf4j:slf4j-simple:$sl4jVersion")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")

@@ -1,6 +1,6 @@
 package com.github.alexgaard.hypo.example;
 
-import com.github.alexgaard.hypo.Dependency;
+import com.github.alexgaard.hypo.annotation.Dependency;
 
 @Dependency
 public class AnnotatedService {

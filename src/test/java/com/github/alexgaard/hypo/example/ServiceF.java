@@ -1,5 +1,7 @@
 package com.github.alexgaard.hypo.example;
 
+import com.github.alexgaard.hypo.annotation.InjectInto;
+
 public class ServiceF {
 
     public final ServiceD serviceD;
@@ -16,6 +18,7 @@ public class ServiceF {
         this.config = null;
     }
 
+    @InjectInto
     public ServiceF(ServiceD serviceD, Config config) {
         this.serviceD = serviceD;
         this.config = config;

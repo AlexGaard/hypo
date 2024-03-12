@@ -1,5 +1,6 @@
 package com.github.alexgaard.hypo;
 
+import com.github.alexgaard.hypo.annotation.Dependency;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;

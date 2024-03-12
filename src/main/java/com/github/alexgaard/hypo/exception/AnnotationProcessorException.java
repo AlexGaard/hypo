@@ -1,6 +1,6 @@
 package com.github.alexgaard.hypo.exception;
 
-import com.github.alexgaard.hypo.Dependency;
+import com.github.alexgaard.hypo.annotation.Dependency;
 
 import static com.github.alexgaard.hypo.AnnotatedDependencyProcessor.DEPENDENCY_MODULE_FULL_NAME;
 import static java.lang.String.format;
