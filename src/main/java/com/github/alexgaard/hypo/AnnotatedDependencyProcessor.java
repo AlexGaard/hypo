@@ -36,10 +36,11 @@ public class AnnotatedDependencyProcessor extends AbstractProcessor {
 
     public static final String GENERATED_MODULE_PACKAGE = "com.github.alexgaard.hypo.generated";
 
-    public static final String DEPENDENCY_MODULE_CLASS_NAME = "DependencyModule";
+    public static final String DEPENDENCY_MODULE_CLASS_NAME = "GeneratedDependencyModule";
 
-    public static final String DEPENDENCY_MODULE_REGISTER_FUNCTION_NAME = "registerModule";
+    public static final String DEPENDENCY_MODULE_REGISTER_FUNCTION_NAME = "register";
 
+    public static final String GENERATED_MODULE_INTERFACE = GeneratedModule.class.getCanonicalName();
     public static final String DEPENDENCY_MODULE_FULL_NAME = GENERATED_MODULE_PACKAGE + "." + DEPENDENCY_MODULE_CLASS_NAME;
 
     private static final String LOGGER_NAME = AnnotatedDependencyProcessor.class.getSimpleName();
@@ -59,10 +60,6 @@ public class AnnotatedDependencyProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         for (TypeElement annotation : annotations) {
             Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(annotation);
-
-            if (annotatedElements.isEmpty()) {
-                continue;
-            }
 
             try {
                 long start = System.currentTimeMillis();
@@ -139,13 +136,11 @@ public class AnnotatedDependencyProcessor extends AbstractProcessor {
         List<String> lines = new ArrayList<>();
         lines.add(format("package %s;", GENERATED_MODULE_PACKAGE));
         lines.add("");
-        lines.add(format("public class %s {", DEPENDENCY_MODULE_CLASS_NAME));
+        lines.add("// Generated at: " + OffsetDateTime.now());
+        lines.add(format("public class %s implements %s {", DEPENDENCY_MODULE_CLASS_NAME, GENERATED_MODULE_INTERFACE));
         lines.add("");
-        lines.add(format("    private %s() {}", DEPENDENCY_MODULE_CLASS_NAME));
-        lines.add("");
-        lines.add(format("    public static void %s(%s resolver) {", DEPENDENCY_MODULE_REGISTER_FUNCTION_NAME, Resolver.class.getCanonicalName()));
-        lines.add("        // Generated at: " + OffsetDateTime.now());
-        lines.add("");
+        lines.add("    @Override");
+        lines.add(format("    public void %s(%s resolver) {", DEPENDENCY_MODULE_REGISTER_FUNCTION_NAME, Resolver.class.getCanonicalName()));
         resolveMethodLines.forEach(line -> {
             lines.add("        " + line);
         });
